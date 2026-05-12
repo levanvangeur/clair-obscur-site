@@ -666,6 +666,8 @@ window.adminDeleteRoomImage = async function(roomId, imgId) {
 };
 
 // ── Équipements ──
+let currentEquipList = [];
+
 window.adminLoadEquip = async function() {
   const list = document.getElementById('drw-equip-list');
   const filterRoomId = document.getElementById('drw-equip-room-filter').value;
@@ -680,8 +682,12 @@ window.adminLoadEquip = async function() {
         items.push(...raw.map(e => ({ ...e, roomName: room.name })));
       }
     }
+    currentEquipList = items;
     if (!items.length) { list.innerHTML = '<p style="color:var(--adm-text-muted);font-size:0.82rem;">Aucun équipement.</p>'; return; }
-    list.innerHTML = items.map(e => `
+    list.innerHTML = items.map((e, idx) => {
+      const isFirst = idx === 0 || items[idx - 1].room_id !== e.room_id;
+      const isLast  = idx === items.length - 1 || items[idx + 1].room_id !== e.room_id;
+      return `
       <div style="display:flex;align-items:center;justify-content:space-between;padding:0.625rem 0;border-bottom:1px solid var(--adm-border);">
         <div style="display:flex;align-items:center;gap:0.6rem;min-width:0;">
           <span style="color:var(--gold);flex-shrink:0;">${iconSvg(e.icon, 14)}</span>
@@ -691,12 +697,32 @@ window.adminLoadEquip = async function() {
           </div>
         </div>
         <div style="display:flex;gap:0.3rem;flex-shrink:0;margin-left:0.5rem;">
+          <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminMoveEquip(${e.id},-1)" ${isFirst ? 'disabled style="opacity:0.25;"' : ''} title="Monter">↑</button>
+          <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminMoveEquip(${e.id},+1)" ${isLast  ? 'disabled style="opacity:0.25;"' : ''} title="Descendre">↓</button>
           <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminEditEquip(${e.id})"><i data-lucide="pencil" style="width:11px;height:11px;"></i></button>
           <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteEquip(${e.id},'${esc(e.name)}')"><i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     setTimeout(() => lucide.createIcons(), 60);
   } catch (err) { list.innerHTML = `<p style="color:#e05555;font-size:0.82rem;">${err.message}</p>`; }
+};
+
+window.adminMoveEquip = async function(id, dir) {
+  const idx = currentEquipList.findIndex(e => e.id === id);
+  const swapIdx = idx + dir;
+  if (swapIdx < 0 || swapIdx >= currentEquipList.length) return;
+
+  const a = currentEquipList[idx];
+  const b = currentEquipList[swapIdx];
+  if (a.room_id !== b.room_id) return; // ne pas mélanger les pièces
+
+  try {
+    await apiFetch(`/api/equipment/${a.id}/order`, true, 'PUT', { order_index: b.order_index });
+    await apiFetch(`/api/equipment/${b.id}/order`, true, 'PUT', { order_index: a.order_index });
+    await adminLoadEquip();
+    await refreshPage();
+  } catch (err) { toast(err.message, 'error'); }
 };
 
 window.openEquipForm = function() {
