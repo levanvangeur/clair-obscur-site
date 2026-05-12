@@ -103,7 +103,7 @@ function renderRooms(rooms) {
                  onclick="openLightboxGlobal(${idx})">
             <div class="slide-room-tag">${esc(room.name)}</div>
             ${(img.hotspots || []).map(h => `
-              <div class="hotspot" style="left:${h.x_percent}%;top:${h.y_percent}%;" onclick="toggleHotspotPopup(event,this)">
+              <div class="hotspot" data-x="${h.x_percent}" data-y="${h.y_percent}" onclick="toggleHotspotPopup(event,this)">
                 <div class="hotspot-pulse"></div>
                 <div class="hotspot-ring">${iconSvg(h.icon, 11)}</div>
                 <div class="hotspot-popup">
@@ -151,7 +151,7 @@ function renderRooms(rooms) {
     if (!e.target.closest('.hotspot')) closeAllHotspotPopups();
   }, { capture: true });
 
-  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
+  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); setupHotspotPositions(); }, 100);
 }
 
 window.openLightboxGlobal = function(idx) {
@@ -295,6 +295,54 @@ window.openLightboxFromRoom = function(roomId, idx) {
 // ══════════════════════════════════════════════════════════
 // ── HOTSPOTS VOYAGEUR ────────────────────────────────────
 // ══════════════════════════════════════════════════════════
+
+// Calcule la position réelle d'un hotspot en tenant compte du crop object-fit:cover
+function positionHotspot(hotspotEl, img) {
+  const xPct = parseFloat(hotspotEl.dataset.x);
+  const yPct = parseFloat(hotspotEl.dataset.y);
+  if (isNaN(xPct) || isNaN(yPct)) return;
+  if (!img.naturalWidth || !img.clientWidth) return;
+
+  const natW = img.naturalWidth,  natH = img.naturalHeight;
+  const cW   = img.clientWidth,   cH   = img.clientHeight;
+  const natR = natW / natH,       cR   = cW / cH;
+
+  let scale, ox, oy;
+  if (natR > cR) {
+    // image plus large → ajustée sur la hauteur, bords latéraux coupés
+    scale = cH / natH; ox = (cW - natW * scale) / 2; oy = 0;
+  } else {
+    // image plus haute → ajustée sur la largeur, haut/bas coupés
+    scale = cW / natW; ox = 0; oy = (cH - natH * scale) / 2;
+  }
+
+  hotspotEl.style.left = ((xPct / 100 * natW * scale + ox) / cW * 100) + '%';
+  hotspotEl.style.top  = ((yPct / 100 * natH * scale + oy) / cH * 100) + '%';
+}
+
+function setupHotspotPositions() {
+  const slides = document.querySelectorAll('.carousel-slide');
+  if (!slides.length) return;
+
+  // ResizeObserver pour recalculer quand le conteneur change de taille
+  const ro = new ResizeObserver(() => {
+    slides.forEach(slide => {
+      const img = slide.querySelector('img');
+      if (!img) return;
+      slide.querySelectorAll('.hotspot').forEach(h => positionHotspot(h, img));
+    });
+  });
+
+  slides.forEach(slide => {
+    const img = slide.querySelector('img');
+    if (!img) return;
+    const update = () => slide.querySelectorAll('.hotspot').forEach(h => positionHotspot(h, img));
+    if (img.complete && img.naturalWidth) update();
+    else img.addEventListener('load', update);
+    ro.observe(slide);
+  });
+}
+
 window.toggleHotspotPopup = function(e, dotEl) {
   e.stopPropagation();
   const popup = dotEl.querySelector('.hotspot-popup');
@@ -303,18 +351,24 @@ window.toggleHotspotPopup = function(e, dotEl) {
   closeAllHotspotPopups();
   if (isOpen) return;
 
-  // Positionnement intelligent pour éviter les débordements
-  const slide = dotEl.closest('.carousel-slide');
-  const dotRect = dotEl.getBoundingClientRect();
-  const slideRect = slide.getBoundingClientRect();
-  const xPct = (dotRect.left - slideRect.left) / slideRect.width;
-  const yPct = (dotRect.top  - slideRect.top)  / slideRect.height;
-
+  // Positionnement viewport-aware pour éviter les débordements
   popup.style.cssText = '';
-  if (xPct > 0.6) { popup.style.right = '110%'; popup.style.left = 'auto'; }
-  else             { popup.style.left  = '110%'; }
-  if (yPct > 0.6) { popup.style.bottom = '0'; popup.style.top = 'auto'; }
-  else             { popup.style.top    = '0'; }
+  const dotRect = dotEl.getBoundingClientRect();
+  const popupW  = Math.min(220, Math.floor(window.innerWidth * 0.70));
+  popup.style.width = popupW + 'px';
+
+  // Horizontal : droite si assez de place, sinon gauche
+  if (window.innerWidth - dotRect.right > popupW + 16) {
+    popup.style.left = '110%';
+  } else {
+    popup.style.right = '110%'; popup.style.left = 'auto';
+  }
+  // Vertical : bas si assez de place, sinon haut
+  if (window.innerHeight - dotRect.bottom > 160) {
+    popup.style.top = '0';
+  } else {
+    popup.style.bottom = '0'; popup.style.top = 'auto';
+  }
 
   popup.classList.add('visible');
 };
