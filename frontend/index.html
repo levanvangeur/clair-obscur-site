@@ -24,7 +24,6 @@
   <ul class="nav-links">
     <li><a href="#regles">Règles</a></li>
     <li><a href="#guide">Guide</a></li>
-    <li><a href="#visite">L'appartement</a></li>
   </ul>
   <div style="display:flex;align-items:center;gap:0.75rem;">
     <a href="#reservation" class="btn-primary" style="font-size:0.72rem;padding:0.7rem 1.5rem;">
@@ -51,10 +50,6 @@
       <a href="#reservation" class="btn-primary" id="hero-cta">
         <i data-lucide="calendar-check" style="width:16px;height:16px;"></i>
         Réservez au meilleur tarif
-      </a>
-      <a href="#visite" class="btn-outline">
-        <i data-lucide="images" style="width:16px;height:16px;"></i>
-        Visiter l'appartement
       </a>
     </div>
   </div>
@@ -109,47 +104,6 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     VISITE VIRTUELLE
-══════════════════════════════════════════════════════ -->
-<section id="visite" style="background:var(--bg);padding-top:5rem;">
-  <div class="section" style="padding-top:0;padding-bottom:2rem;">
-    <div class="section-header reveal">
-      <p class="text-eyebrow">Visite de l'appartement</p>
-      <span class="divider-line"></span>
-      <h2 class="text-section-title">Explorez chaque pièce<br><em>en visite virtuelle</em></h2>
-    </div>
-  </div>
-
-  <!-- Tabs pièces -->
-  <div id="vt-tabs-wrap">
-    <div id="vt-tabs"><div class="skeleton" style="height:44px;width:300px;border-radius:2px;margin:8px 1.5rem;"></div></div>
-  </div>
-
-  <!-- Viewer principal -->
-  <div id="vt-viewer">
-    <!-- Photo + hotspots -->
-    <div id="vt-photo-wrap">
-      <img id="vt-photo" src="" alt="">
-      <div id="vt-hotspots"></div>
-    </div>
-
-    <!-- Bouton retour -->
-    <button id="vt-back" onclick="vtGoBack()" style="display:none;">
-      <i data-lucide="arrow-left" style="width:14px;height:14px;"></i>
-      Retour
-    </button>
-
-    <!-- Info bas de photo -->
-    <div id="vt-info">
-      <span id="vt-room-label" class="vt-room-name"></span>
-      <span id="vt-photo-counter" class="vt-photo-counter"></span>
-    </div>
-  </div>
-
-  <!-- Vignettes -->
-  <div id="vt-thumbs"></div>
-</section>
 
 <!-- ══════════════════════════════════════════════════════
      RÉSERVATION DIRECTE
@@ -624,7 +578,6 @@
         <div style="display:flex;margin-bottom:0.6rem;border:1px solid var(--adm-border);">
           <button id="hm-mode-existing" class="hm-mode-btn active" type="button">Équipement</button>
           <button id="hm-mode-free"     class="hm-mode-btn"        type="button">Note</button>
-          <button id="hm-mode-nav"      class="hm-mode-btn"        type="button">↗ Navigation</button>
         </div>
 
         <!-- Mode : équipement existant -->
@@ -641,16 +594,7 @@
           <textarea id="hm-free-desc" class="adm-input adm-input-sm" rows="2" placeholder="Vue sur les toits…" style="margin-bottom:0.4rem;"></textarea>
         </div>
 
-        <!-- Mode : navigation vers une autre photo -->
-        <div id="hm-block-nav" style="display:none;">
-          <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Photo de destination</p>
-          <select id="hm-nav-target" class="adm-input adm-input-sm" style="margin-bottom:0.5rem;"></select>
-          <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Direction (icône)</p>
-          <div id="hm-nav-arrows" style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.4rem;"></div>
-          <input type="hidden" id="hm-nav-icon" value="arrow-right">
-        </div>
-
-        <div style="display:flex;gap:0.4rem;margin-top:0.25rem;">
+<div style="display:flex;gap:0.4rem;margin-top:0.25rem;">
           <button id="hm-confirm-btn" class="adm-btn adm-btn-gold adm-btn-xs" type="button" style="flex:1;justify-content:center;">✓ OK</button>
           <button id="hm-cancel-btn"  class="adm-btn adm-btn-ghost adm-btn-xs" type="button">✕</button>
         </div>
