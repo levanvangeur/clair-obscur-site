@@ -47,10 +47,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 function renderAll(data) {
   updateMeta(data);
   renderHero(data);
-  renderGuide(data.rooms || []);
-  renderRules(data.rules, data.settings);
   renderBooking(data, data.bookings);
-  renderHelpContact(data.settings);
+  renderArrivee(data.rules);
+  renderDepart(data.rules);
+  renderWifi(data.rules);
+  renderEquipements(data.rooms || []);
+  renderStationnement(data.rules);
+  renderReglement(data.rules);
+  renderContact(data.settings);
+  renderDecouvrir(data.rules);
+  renderFaq(data.faq || []);
   setTimeout(() => lucide.createIcons(), 60);
 }
 
@@ -76,8 +82,8 @@ function renderHero(data) {
 }
 
 
-function renderGuide(rooms) {
-  const container = document.getElementById('guide-container');
+function renderEquipements(rooms) {
+  const container = document.getElementById('equip-container');
   const all = rooms.flatMap(r => (r.equipment || []).map(e => ({ ...e, roomName: r.name })));
   if (!all.length) { container.innerHTML = '<p style="color:var(--text-muted);padding:2rem 0;">Aucun équipement configuré.</p>'; return; }
 
@@ -100,40 +106,158 @@ function renderGuide(rooms) {
   setTimeout(() => lucide.createIcons(), 60);
 }
 
-function renderRules(rules, settings) {
-  const container = document.getElementById('rules-container');
-  if (!rules) { container.innerHTML = '<p style="color:var(--text-muted);">Règles non configurées.</p>'; return; }
+function renderArrivee(rules) {
+  const c = document.getElementById('arrivee-container');
+  if (!rules) { c.innerHTML = ''; return; }
+  c.innerHTML = `
+    <div class="info-card reveal">
+      <div class="info-card-time">${esc(rules.check_in_time || '15:00')}</div>
+      ${rules.check_in_instructions ? `<p class="info-card-text">${esc(rules.check_in_instructions).replace(/\n/g,'<br>')}</p>` : ''}
+    </div>`;
+  setTimeout(() => setupScrollReveal(), 60);
+}
 
-  container.innerHTML = [
-    { icon: 'log-in',  eyebrow: 'Arrivée — Check-in',  time: rules.check_in_time,  text: rules.check_in_instructions },
-    { icon: 'log-out', eyebrow: 'Départ — Check-out',   time: rules.check_out_time, text: rules.check_out_instructions },
-    { icon: 'trash-2', eyebrow: 'Poubelles',             time: null,                 text: rules.trash_instructions },
-  ].map(c => `
-    <div class="rule-card reveal">
-      <div class="rule-card-icon"><i data-lucide="${c.icon}" style="width:18px;height:18px;"></i></div>
-      <p class="text-eyebrow" style="margin-bottom:0.5rem;">${esc(c.eyebrow)}</p>
-      ${c.time ? `<p class="rule-card-time">${esc(c.time)}</p>` : ''}
-      ${c.text ? `<p style="margin-top:0.75rem;font-size:0.85rem;color:var(--text-muted);line-height:1.8;">${esc(c.text)}</p>` : ''}
-    </div>`).join('');
+function renderDepart(rules) {
+  const c = document.getElementById('depart-container');
+  if (!rules) { c.innerHTML = ''; return; }
+  c.innerHTML = `
+    <div class="info-card reveal">
+      <div class="info-card-time">${esc(rules.check_out_time || '11:00')}</div>
+      ${rules.check_out_instructions ? `<p class="info-card-text">${esc(rules.check_out_instructions).replace(/\n/g,'<br>')}</p>` : ''}
+    </div>`;
+  setTimeout(() => setupScrollReveal(), 60);
+}
 
-  if (rules.wifi_name || rules.wifi_password) {
-    container.innerHTML += `
-      <div class="rule-card wifi-card reveal">
-        <div class="rule-card-icon"><i data-lucide="wifi" style="width:18px;height:18px;"></i></div>
-        <p class="text-eyebrow" style="margin-bottom:0.5rem;">WiFi</p>
-        <p style="font-size:0.78rem;color:var(--text-muted);">Réseau</p>
-        <p class="wifi-password">${esc(rules.wifi_name || '')}</p>
-        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:0.75rem;">Mot de passe</p>
-        <p class="wifi-password">${esc(rules.wifi_password || '')}</p>
+function renderWifi(rules) {
+  const c = document.getElementById('wifi-container');
+  if (!rules || (!rules.wifi_name && !rules.wifi_password)) {
+    c.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">Informations Wi-Fi à configurer.</p>';
+    return;
+  }
+  const makeCopiable = (val, label) => `
+    <div class="wifi-field reveal">
+      <p class="wifi-field-label">${label}</p>
+      <div class="wifi-field-row">
+        <span class="wifi-value" id="wifi-${label}">${esc(val)}</span>
+        <button class="wifi-copy-btn" onclick="copyToClipboard('${esc(val)}', this)" title="Copier">
+          <i data-lucide="copy" style="width:14px;height:14px;"></i>
+        </button>
+      </div>
+    </div>`;
+  c.innerHTML = `<div class="wifi-card reveal">
+    <div class="wifi-card-icon"><i data-lucide="wifi" style="width:28px;height:28px;color:var(--gold);"></i></div>
+    ${rules.wifi_name     ? makeCopiable(rules.wifi_name,     'Réseau') : ''}
+    ${rules.wifi_password ? makeCopiable(rules.wifi_password, 'Mot de passe') : ''}
+  </div>`;
+  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
+}
+
+window.copyToClipboard = function(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const icon = btn.querySelector('i');
+    if (icon) { icon.setAttribute('data-lucide', 'check'); lucide.createIcons({ nodes: [icon] }); }
+    setTimeout(() => { if (icon) { icon.setAttribute('data-lucide', 'copy'); lucide.createIcons({ nodes: [icon] }); } }, 2000);
+  });
+};
+
+function renderStationnement(rules) {
+  const c = document.getElementById('stationnement-container');
+  if (!rules || !rules.parking_instructions) {
+    c.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">Informations de stationnement à configurer.</p>';
+    return;
+  }
+  c.innerHTML = `
+    <div class="info-card reveal">
+      <p class="info-card-text">${esc(rules.parking_instructions).replace(/\n/g,'<br>')}</p>
+    </div>`;
+  setTimeout(() => setupScrollReveal(), 60);
+}
+
+function renderReglement(rules) {
+  const c = document.getElementById('reglement-container');
+  if (!rules) { c.innerHTML = ''; return; }
+  let html = '';
+  if (rules.house_rules) {
+    html += `<div class="info-card reveal"><p class="info-card-text">${esc(rules.house_rules).replace(/\n/g,'<br>')}</p></div>`;
+  }
+  if (rules.trash_instructions) {
+    html += `
+      <div class="info-card reveal" style="margin-top:1.5rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
+          <i data-lucide="trash-2" style="width:18px;height:18px;color:var(--gold);"></i>
+          <p class="text-eyebrow" style="margin:0;">Poubelles</p>
+        </div>
+        <p class="info-card-text">${esc(rules.trash_instructions).replace(/\n/g,'<br>')}</p>
       </div>`;
   }
-
-  if (rules.house_rules) {
-    const block = document.getElementById('house-rules-block');
-    block.style.display = 'block';
-    document.getElementById('house-rules-text').textContent = rules.house_rules;
-  }
+  if (!html) html = '<p style="color:var(--text-muted);font-size:0.9rem;">Règlement à configurer.</p>';
+  c.innerHTML = html;
   setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
+}
+
+function renderContact(settings) {
+  const c = document.getElementById('contact-container');
+  if (!settings) { c.innerHTML = ''; return; }
+  const phone = settings.help_phone || '';
+  const email = settings.help_email || '';
+
+  // Bouton flottant
+  if (phone) { document.getElementById('help-phone-num').textContent = phone; document.getElementById('help-phone-link').href = `tel:${phone.replace(/\s/g, '')}`; }
+  if (email) { document.getElementById('help-email-addr').textContent = email; document.getElementById('help-email-link').href = `mailto:${email}`; }
+
+  c.innerHTML = `
+    <div class="contact-grid reveal">
+      ${phone ? `<a href="tel:${esc(phone.replace(/\s/g,''))}" class="contact-card">
+        <div class="contact-card-icon"><i data-lucide="phone" style="width:24px;height:24px;"></i></div>
+        <p class="contact-card-label">Appeler</p>
+        <p class="contact-card-value">${esc(phone)}</p>
+      </a>` : ''}
+      ${email ? `<a href="mailto:${esc(email)}" class="contact-card">
+        <div class="contact-card-icon"><i data-lucide="mail" style="width:24px;height:24px;"></i></div>
+        <p class="contact-card-label">Email</p>
+        <p class="contact-card-value">${esc(email)}</p>
+      </a>` : ''}
+    </div>`;
+  if (!phone && !email) c.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">Contact à configurer dans Paramètres.</p>';
+  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
+}
+
+function renderDecouvrir(rules) {
+  const c = document.getElementById('decouvrir-container');
+  if (!rules || !rules.places_to_discover) {
+    c.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">Suggestions à configurer.</p>';
+    return;
+  }
+  c.innerHTML = `
+    <div class="info-card reveal">
+      <p class="info-card-text">${esc(rules.places_to_discover).replace(/\n/g,'<br>')}</p>
+    </div>`;
+  setTimeout(() => setupScrollReveal(), 60);
+}
+
+function renderFaq(items) {
+  const c = document.getElementById('faq-container');
+  if (!items || !items.length) {
+    c.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">Aucune question fréquente configurée.</p>';
+    return;
+  }
+  const offset = 1000; // évite collision d'id avec accordion équipements
+  c.innerHTML = items.map((q, i) => `
+    <div class="accordion-item" id="acc-${offset + i}">
+      <button class="accordion-trigger" onclick="toggleAccordion(${offset + i})" aria-expanded="false">
+        <div class="accordion-trigger-left">
+          <div class="accordion-icon-wrap"><i data-lucide="help-circle" style="width:16px;height:16px;"></i></div>
+          <div><div class="accordion-trigger-name">${esc(q.question)}</div></div>
+        </div>
+        <i data-lucide="chevron-down" class="accordion-chevron" style="width:18px;height:18px;"></i>
+      </button>
+      <div class="accordion-body">
+        <div class="accordion-body-inner">
+          <p class="accordion-instructions">${esc(q.answer).replace(/\n/g,'<br>')}</p>
+        </div>
+      </div>
+    </div>`).join('');
+  setTimeout(() => lucide.createIcons(), 60);
 }
 
 function renderBooking(property, bookings) {
@@ -173,17 +297,9 @@ function renderBooking(property, bookings) {
   setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
 }
 
-function renderHelpContact(settings) {
-  if (!settings) return;
-  const phone = settings.help_phone || '';
-  const email = settings.help_email || '';
-  if (phone) { document.getElementById('help-phone-num').textContent = phone; document.getElementById('help-phone-link').href = `tel:${phone.replace(/\s/g, '')}`; }
-  if (email) { document.getElementById('help-email-addr').textContent = email; document.getElementById('help-email-link').href = `mailto:${email}`; }
-}
-
 function showLoadError() {
-  document.getElementById('rooms-container').innerHTML =
-    `<div class="section" style="text-align:center;padding:4rem 2rem;color:var(--text-muted);">Impossible de charger les données.<br>Vérifiez que le serveur est lancé (<code>npm start</code>).</div>`;
+  document.getElementById('booking-container').innerHTML =
+    `<div style="text-align:center;padding:4rem 2rem;color:var(--text-muted);">Impossible de charger les données.<br>Vérifiez que le serveur est lancé (<code>npm start</code>).</div>`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -465,7 +581,7 @@ window.switchDrawerTab = function(tab) {
   // Charge les données du tab
   const loaders = {
     info: adminLoadInfo, rooms: adminLoadRooms, equip: adminLoadEquip,
-    rules: adminLoadRules, booking: adminLoadBooking, settings: adminLoadSettings,
+    rules: adminLoadRules, faq: adminLoadFaq, booking: adminLoadBooking, settings: adminLoadSettings,
   };
   if (loaders[tab]) loaders[tab]();
 };
@@ -790,6 +906,8 @@ async function adminLoadRules() {
     document.getElementById('dr-wifi-pass').value     = r.wifi_password || '';
     document.getElementById('dr-trash').value         = r.trash_instructions || '';
     document.getElementById('dr-house-rules').value   = r.house_rules || '';
+    document.getElementById('dr-parking').value       = r.parking_instructions || '';
+    document.getElementById('dr-places').value        = r.places_to_discover || '';
   } catch {}
 }
 
@@ -805,8 +923,57 @@ window.adminSaveRules = async function(e) {
       wifi_password:          document.getElementById('dr-wifi-pass').value,
       trash_instructions:     document.getElementById('dr-trash').value,
       house_rules:            document.getElementById('dr-house-rules').value,
+      parking_instructions:   document.getElementById('dr-parking').value,
+      places_to_discover:     document.getElementById('dr-places').value,
     });
-    toast('Règles enregistrées');
+    toast('Contenu enregistré');
+    await refreshPage();
+  } catch (err) { toast(err.message, 'error'); }
+};
+
+// ── FAQ admin ──
+async function adminLoadFaq() {
+  const listEl = document.getElementById('faq-admin-list');
+  try {
+    const items = await apiFetch(`/api/faq/${PROPERTY_ID}`, false);
+    if (!items.length) {
+      listEl.innerHTML = '<p style="color:var(--adm-text-muted);font-size:0.82rem;">Aucune question. Ajoutez-en ci-dessous.</p>';
+      return;
+    }
+    listEl.innerHTML = items.map(q => `
+      <div style="padding:0.6rem;background:var(--adm-surface-2);border:1px solid var(--adm-border);border-radius:3px;">
+        <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem;">
+          <p style="font-size:0.82rem;font-weight:500;flex:1;">${esc(q.question)}</p>
+          <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteFaq(${q.id})" title="Supprimer">
+            <i data-lucide="trash-2" style="width:11px;height:11px;"></i>
+          </button>
+        </div>
+        <p style="font-size:0.75rem;color:var(--adm-text-muted);margin-top:0.25rem;">${esc(q.answer)}</p>
+      </div>`).join('');
+    setTimeout(() => lucide.createIcons(), 60);
+  } catch (err) { listEl.innerHTML = `<p style="color:#e05555;font-size:0.82rem;">${err.message}</p>`; }
+}
+
+window.adminAddFaq = async function() {
+  const q = document.getElementById('faq-q').value.trim();
+  const a = document.getElementById('faq-a').value.trim();
+  if (!q || !a) { toast('Question et réponse requises', 'error'); return; }
+  try {
+    await apiFetch(`/api/faq/${PROPERTY_ID}`, true, 'POST', { question: q, answer: a });
+    document.getElementById('faq-q').value = '';
+    document.getElementById('faq-a').value = '';
+    toast('Question ajoutée ✓');
+    await adminLoadFaq();
+    await refreshPage();
+  } catch (err) { toast(err.message, 'error'); }
+};
+
+window.adminDeleteFaq = async function(id) {
+  if (!confirm('Supprimer cette question ?')) return;
+  try {
+    await apiFetch(`/api/faq/${id}`, true, 'DELETE');
+    toast('Question supprimée');
+    await adminLoadFaq();
     await refreshPage();
   } catch (err) { toast(err.message, 'error'); }
 };

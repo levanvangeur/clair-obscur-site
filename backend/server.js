@@ -26,6 +26,7 @@ app.use('/api/rooms', require('./routes/rooms'));
 app.use('/api/equipment', require('./routes/equipment'));
 app.use('/api/rules', require('./routes/rules'));
 app.use('/api/hotspots', require('./routes/hotspots'));
+app.use('/api/faq',      require('./routes/faq'));
 
 // ── Fallback SPA ─────────────────────────────────────────
 app.get('/admin*', (req, res) => {

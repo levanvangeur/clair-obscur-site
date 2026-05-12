@@ -108,14 +108,24 @@ function initDatabase() {
       FOREIGN KEY (room_image_id) REFERENCES room_images(id) ON DELETE CASCADE,
       FOREIGN KEY (equipment_id)  REFERENCES equipment(id)   ON DELETE SET NULL
     );
+
+    CREATE TABLE IF NOT EXISTS faq (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id  INTEGER NOT NULL,
+      question     TEXT NOT NULL,
+      answer       TEXT NOT NULL,
+      order_index  INTEGER DEFAULT 0,
+      FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+    );
   `);
 
   // Migrations — colonnes ajoutées après la version initiale
   try { db.exec('ALTER TABLE photo_hotspots ADD COLUMN target_image_id INTEGER REFERENCES room_images(id) ON DELETE SET NULL'); } catch(_) {}
   try { db.exec('ALTER TABLE photo_hotspots ADD COLUMN icon_override TEXT'); } catch(_) {}
   try { db.exec('ALTER TABLE equipment ADD COLUMN order_index INTEGER DEFAULT 0'); } catch(_) {}
-  // Initialise l'ordre des équipements existants (0 = jamais défini)
   db.exec('UPDATE equipment SET order_index = id WHERE order_index = 0');
+  try { db.exec('ALTER TABLE rules ADD COLUMN parking_instructions TEXT'); } catch(_) {}
+  try { db.exec('ALTER TABLE rules ADD COLUMN places_to_discover TEXT'); } catch(_) {}
 
   seedIfEmpty(db);
   console.log('✅ Base de données initialisée');

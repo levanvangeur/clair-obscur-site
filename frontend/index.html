@@ -16,40 +16,26 @@
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════
-     NAVIGATION
-══════════════════════════════════════════════════════ -->
+<!-- ══ NAVIGATION ═══════════════════════════════════════════ -->
 <nav id="navbar">
   <a href="#hero" class="nav-logo" id="nav-logo">Clair-Obscur</a>
-  <ul class="nav-links">
-    <li><a href="#regles">Règles</a></li>
-    <li><a href="#guide">Guide</a></li>
-  </ul>
-  <div style="display:flex;align-items:center;gap:0.75rem;">
-    <a href="#reservation" class="btn-primary" style="font-size:0.72rem;padding:0.7rem 1.5rem;">
-      Réserver en direct
-    </a>
-    <!-- Bouton Admin — discret dans la nav -->
-    <button id="admin-nav-btn" onclick="handleAdminTrigger()" title="Administration" aria-label="Administration">
-      <i data-lucide="settings-2" style="width:18px;height:18px;"></i>
-    </button>
-  </div>
+  <button id="admin-nav-btn" onclick="handleAdminTrigger()" title="Administration" aria-label="Administration">
+    <i data-lucide="settings-2" style="width:18px;height:18px;"></i>
+  </button>
 </nav>
 
-<!-- ══════════════════════════════════════════════════════
-     HERO
-══════════════════════════════════════════════════════ -->
+<!-- ══ HERO ══════════════════════════════════════════════════ -->
 <section id="hero">
   <div id="hero-bg"></div>
   <div id="hero-overlay"></div>
   <div id="hero-content">
     <p class="text-eyebrow hero-eyebrow" id="hero-eyebrow">Location courte durée · Réservation directe</p>
-    <h1 class="text-hero hero-title" id="hero-title">Villa<br>Lumière</h1>
+    <h1 class="text-hero hero-title" id="hero-title">Clair<br>Obscur</h1>
     <p class="hero-tagline" id="hero-tagline">Un havre de paix au cœur de la ville</p>
     <div class="hero-cta-group">
       <a href="#reservation" class="btn-primary" id="hero-cta">
         <i data-lucide="calendar-check" style="width:16px;height:16px;"></i>
-        Réservez au meilleur tarif
+        Réserver maintenant
       </a>
     </div>
   </div>
@@ -59,105 +45,140 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     RÈGLES
-══════════════════════════════════════════════════════ -->
-<section id="regles" style="background:var(--bg);">
+<!-- ══ RÉSERVER EN DIRECT ════════════════════════════════════ -->
+<section id="reservation" style="background:var(--surface);border-top:1px solid var(--border);">
   <div class="section">
     <div class="section-header reveal">
-      <p class="text-eyebrow">Règles & informations</p>
+      <p class="text-eyebrow">Réservation directe</p>
       <span class="divider-line"></span>
-      <h2 class="text-section-title">Tout ce qu'il faut<br><em>savoir pour votre séjour</em></h2>
+      <h2 class="text-section-title">Réserver en direct<br><em>sans frais de service</em></h2>
     </div>
-    <div id="rules-container" class="rules-grid">
-      <div class="skeleton" style="height:180px;"></div>
-      <div class="skeleton" style="height:180px;"></div>
-      <div class="skeleton" style="height:180px;"></div>
-    </div>
-    <div id="house-rules-block" style="margin-top:3rem;padding:2rem;border:1px solid var(--border);background:var(--surface);display:none;">
-      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
-        <div class="rule-card-icon"><i data-lucide="scroll-text" style="width:18px;height:18px;"></i></div>
-        <div>
-          <p class="text-eyebrow" style="margin-bottom:0.25rem;">Règlement intérieur</p>
-          <h3 style="font-family:var(--font-display);font-size:1.4rem;font-weight:300;">À respecter pour tous</h3>
-        </div>
-      </div>
-      <div id="house-rules-text" class="house-rules-list"></div>
+    <div id="booking-container">
+      <div class="skeleton" style="height:260px;"></div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     GUIDE INTERACTIF
-══════════════════════════════════════════════════════ -->
-<section id="guide" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<!-- ══ ARRIVÉE ═══════════════════════════════════════════════ -->
+<section id="arrivee" style="background:var(--bg);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Check-in</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Arrivée</h2>
+    </div>
+    <div id="arrivee-container"></div>
+  </div>
+</section>
+
+<!-- ══ DÉPART ════════════════════════════════════════════════ -->
+<section id="depart" style="background:var(--surface);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Check-out</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Départ</h2>
+    </div>
+    <div id="depart-container"></div>
+  </div>
+</section>
+
+<!-- ══ WI-FI ══════════════════════════════════════════════════ -->
+<section id="wifi" style="background:var(--bg);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Connexion internet</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Wi-Fi</h2>
+    </div>
+    <div id="wifi-container"></div>
+  </div>
+</section>
+
+<!-- ══ ÉQUIPEMENTS ════════════════════════════════════════════ -->
+<section id="equipements" style="background:var(--surface);border-top:1px solid var(--border);">
   <div class="section">
     <div class="section-header reveal">
       <p class="text-eyebrow">Guide interactif</p>
       <span class="divider-line"></span>
-      <h2 class="text-section-title">Comment utiliser<br><em>chaque équipement ?</em></h2>
+      <h2 class="text-section-title">Équipements<br><em>et mode d'emploi</em></h2>
       <p style="color:var(--text-muted);margin-top:1rem;font-size:0.9rem;">Cliquez sur un équipement pour les instructions.</p>
     </div>
-    <div id="guide-container" class="guide-accordion">
+    <div id="equip-container" class="guide-accordion">
       <div class="skeleton" style="height:200px;border-radius:2px;"></div>
     </div>
   </div>
 </section>
 
-
-<!-- ══════════════════════════════════════════════════════
-     RÉSERVATION DIRECTE
-══════════════════════════════════════════════════════ -->
-<section id="reservation">
+<!-- ══ STATIONNEMENT ══════════════════════════════════════════ -->
+<section id="stationnement" style="background:var(--bg);border-top:1px solid var(--border);">
   <div class="section">
-    <div class="section-header reveal" style="text-align:center;">
-      <p class="text-eyebrow">Réservation directe</p>
-      <span class="divider-line" style="margin-left:auto;margin-right:auto;"></span>
-      <h2 class="text-section-title">Réservez en direct<br><em>et économisez les frais</em></h2>
-      <p style="color:var(--text-muted);margin-top:1rem;font-size:0.9rem;max-width:500px;margin-left:auto;margin-right:auto;">
-        En réservant directement, vous évitez les frais de service des plateformes (jusqu'à 18%).
-      </p>
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Se garer</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Stationnement</h2>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-bottom:4rem;">
-      <div class="reveal" style="text-align:center;padding:2rem 1rem;">
-        <div style="width:48px;height:48px;border:1px solid var(--border-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--gold);">
-          <i data-lucide="piggy-bank" style="width:20px;height:20px;"></i>
-        </div>
-        <h4 style="font-family:var(--font-display);font-size:1.1rem;margin-bottom:0.5rem;">Économies réelles</h4>
-        <p style="font-size:0.82rem;color:var(--text-muted);">Pas de frais de service, pas de surprises</p>
-      </div>
-      <div class="reveal" style="text-align:center;padding:2rem 1rem;">
-        <div style="width:48px;height:48px;border:1px solid var(--border-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--gold);">
-          <i data-lucide="message-circle" style="width:20px;height:20px;"></i>
-        </div>
-        <h4 style="font-family:var(--font-display);font-size:1.1rem;margin-bottom:0.5rem;">Contact direct</h4>
-        <p style="font-size:0.82rem;color:var(--text-muted);">Réponse rapide, flexibilité</p>
-      </div>
-      <div class="reveal" style="text-align:center;padding:2rem 1rem;">
-        <div style="width:48px;height:48px;border:1px solid var(--border-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;color:var(--gold);">
-          <i data-lucide="shield-check" style="width:20px;height:20px;"></i>
-        </div>
-        <h4 style="font-family:var(--font-display);font-size:1.1rem;margin-bottom:0.5rem;">Séjour garanti</h4>
-        <p style="font-size:0.82rem;color:var(--text-muted);">Même sécurité, sans intermédiaire</p>
-      </div>
+    <div id="stationnement-container"></div>
+  </div>
+</section>
+
+<!-- ══ RÈGLEMENT INTÉRIEUR ════════════════════════════════════ -->
+<section id="reglement" style="background:var(--surface);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">À respecter</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Règlement intérieur</h2>
     </div>
-    <div id="booking-container">
-      <div class="skeleton" style="height:280px;"></div>
+    <div id="reglement-container"></div>
+  </div>
+</section>
+
+<!-- ══ CONTACT / ASSISTANCE ══════════════════════════════════ -->
+<section id="contact" style="background:var(--bg);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">On est là pour vous</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Contact<br><em>& Assistance</em></h2>
+    </div>
+    <div id="contact-container"></div>
+  </div>
+</section>
+
+<!-- ══ À DÉCOUVRIR ════════════════════════════════════════════ -->
+<section id="decouvrir" style="background:var(--surface);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Autour de vous</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">À découvrir</h2>
+    </div>
+    <div id="decouvrir-container"></div>
+  </div>
+</section>
+
+<!-- ══ FAQ ════════════════════════════════════════════════════ -->
+<section id="faq" style="background:var(--bg);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Questions fréquentes</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">FAQ</h2>
+    </div>
+    <div id="faq-container" class="guide-accordion">
+      <div class="skeleton" style="height:120px;border-radius:2px;"></div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════════════════ -->
+<!-- ══ FOOTER ═════════════════════════════════════════════════ -->
 <footer>
   <p id="footer-name" style="font-family:var(--font-display);font-size:1.1rem;font-weight:300;color:var(--text-muted);">Clair-Obscur</p>
   <p>© <span id="footer-year"></span> · Tous droits réservés</p>
 </footer>
 
-<!-- ══════════════════════════════════════════════════════
-     LIGHTBOX
-══════════════════════════════════════════════════════ -->
+<!-- ══ LIGHTBOX ══════════════════════════════════════════════ -->
 <div id="lightbox" role="dialog" aria-modal="true">
   <button class="lightbox-close" id="lightbox-close"><i data-lucide="x" style="width:24px;height:24px;"></i></button>
   <button class="lightbox-nav lightbox-prev" id="lightbox-prev"><i data-lucide="chevron-left" style="width:28px;height:28px;"></i></button>
@@ -165,9 +186,7 @@
   <button class="lightbox-nav lightbox-next" id="lightbox-next"><i data-lucide="chevron-right" style="width:28px;height:28px;"></i></button>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     BOUTON AIDE FLOTTANT
-══════════════════════════════════════════════════════ -->
+<!-- ══ BOUTON AIDE FLOTTANT ═══════════════════════════════════ -->
 <button id="help-btn" aria-label="Besoin d'aide ?">
   <i data-lucide="life-buoy" style="width:18px;height:18px;color:var(--gold);"></i>
   <span>Besoin d'aide ?</span>
@@ -196,9 +215,7 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     ██ ADMIN — LOGIN MODAL
-══════════════════════════════════════════════════════ -->
+<!-- ══ ADMIN — LOGIN ══════════════════════════════════════════ -->
 <div id="admin-login-modal" class="adm-modal-overlay" style="display:none;">
   <div class="adm-modal-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;">
@@ -228,14 +245,11 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     ██ ADMIN — DRAWER (panneau latéral)
-══════════════════════════════════════════════════════ -->
+<!-- ══ ADMIN — DRAWER ═════════════════════════════════════════ -->
 <div id="drawer-backdrop" onclick="closeAdminDrawer()"></div>
 
 <aside id="admin-drawer" role="complementary" aria-label="Panneau d'administration">
 
-  <!-- En-tête du drawer -->
   <div class="drawer-header">
     <div>
       <p style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);margin-bottom:0.15rem;">Mode édition</p>
@@ -251,20 +265,19 @@
     </div>
   </div>
 
-  <!-- Onglets de navigation -->
   <div class="drawer-tabs" id="drawer-tabs">
     <button class="drw-tab active" data-tab="info"     onclick="switchDrawerTab('info')">Logement</button>
     <button class="drw-tab"        data-tab="rooms"    onclick="switchDrawerTab('rooms')">Pièces</button>
     <button class="drw-tab"        data-tab="equip"    onclick="switchDrawerTab('equip')">Équipements</button>
-    <button class="drw-tab"        data-tab="rules"    onclick="switchDrawerTab('rules')">Règles</button>
+    <button class="drw-tab"        data-tab="rules"    onclick="switchDrawerTab('rules')">Contenu</button>
+    <button class="drw-tab"        data-tab="faq"      onclick="switchDrawerTab('faq')">FAQ</button>
     <button class="drw-tab"        data-tab="booking"  onclick="switchDrawerTab('booking')">Réservation</button>
     <button class="drw-tab"        data-tab="settings" onclick="switchDrawerTab('settings')">Paramètres</button>
   </div>
 
-  <!-- Contenu des onglets -->
   <div class="drawer-body">
 
-    <!-- ── Onglet : Logement ── -->
+    <!-- ── Logement ── -->
     <div class="drw-panel active" id="drw-info">
       <form onsubmit="adminSaveProp(event)">
         <div class="adm-form-group">
@@ -290,19 +303,17 @@
           <i data-lucide="save" style="width:13px;height:13px;"></i> Enregistrer
         </button>
       </form>
-
       <div class="adm-separator"></div>
-
       <p class="adm-label" style="margin-bottom:0.75rem;">Image principale</p>
       <div class="adm-upload-zone" onclick="document.getElementById('dp-img-input').click()">
         <input type="file" id="dp-img-input" accept="image/*" onchange="adminUploadPropImage(this)" style="display:none;">
         <i data-lucide="upload-cloud" style="width:32px;height:32px;color:var(--adm-text-dim);margin-bottom:0.5rem;"></i>
-        <p style="font-size:0.82rem;color:var(--adm-text-muted);">Cliquez ou glissez une image<br><small style="color:var(--adm-text-dim);">JPG, PNG, WebP · Max 20 Mo</small></p>
+        <p style="font-size:0.82rem;color:var(--adm-text-muted);">Cliquez ou glissez une image<br><small>JPG, PNG, WebP · Max 20 Mo</small></p>
       </div>
       <div id="dp-img-preview" style="margin-top:0.75rem;"></div>
     </div>
 
-    <!-- ── Onglet : Pièces ── -->
+    <!-- ── Pièces ── -->
     <div class="drw-panel" id="drw-rooms">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
         <p style="font-size:0.82rem;color:var(--adm-text-muted);">Gérez les pièces et leurs photos</p>
@@ -310,37 +321,21 @@
           <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
         </button>
       </div>
-
-      <!-- Formulaire pièce (masqué par défaut) -->
       <div id="room-form-block" style="display:none;background:var(--adm-surface-2);padding:1rem;margin-bottom:1rem;border:1px solid var(--adm-border);">
         <p class="adm-label" style="margin-bottom:0.75rem;" id="room-form-title">Nouvelle pièce</p>
         <input type="hidden" id="rf-id">
-        <div class="adm-form-group">
-          <label class="adm-label">Nom</label>
-          <input type="text" class="adm-input" id="rf-name" placeholder="Salon">
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Description</label>
-          <textarea class="adm-input" id="rf-desc" rows="2" placeholder="Description…"></textarea>
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Ordre</label>
-          <input type="number" class="adm-input" id="rf-order" value="0" min="0">
-        </div>
+        <div class="adm-form-group"><label class="adm-label">Nom</label><input type="text" class="adm-input" id="rf-name" placeholder="Salon"></div>
+        <div class="adm-form-group"><label class="adm-label">Description</label><textarea class="adm-input" id="rf-desc" rows="2" placeholder="Description…"></textarea></div>
+        <div class="adm-form-group"><label class="adm-label">Ordre</label><input type="number" class="adm-input" id="rf-order" value="0" min="0"></div>
         <div style="display:flex;gap:0.5rem;">
-          <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="adminSaveRoom()">
-            <i data-lucide="save" style="width:12px;height:12px;"></i> Sauvegarder
-          </button>
+          <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="adminSaveRoom()"><i data-lucide="save" style="width:12px;height:12px;"></i> Sauvegarder</button>
           <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeRoomForm()">Annuler</button>
         </div>
       </div>
-
-      <div id="drw-rooms-list">
-        <p style="color:var(--adm-text-muted);font-size:0.82rem;">Chargement…</p>
-      </div>
+      <div id="drw-rooms-list"><p style="color:var(--adm-text-muted);font-size:0.82rem;">Chargement…</p></div>
     </div>
 
-    <!-- ── Onglet : Équipements ── -->
+    <!-- ── Équipements ── -->
     <div class="drw-panel" id="drw-equip">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
         <div class="adm-form-group" style="flex:1;margin-bottom:0;margin-right:0.75rem;">
@@ -352,147 +347,113 @@
           <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
         </button>
       </div>
-
-      <!-- Formulaire équipement (masqué par défaut) -->
       <div id="equip-form-block" style="display:none;background:var(--adm-surface-2);padding:1rem;margin-bottom:1rem;border:1px solid var(--adm-border);">
         <p class="adm-label" style="margin-bottom:0.75rem;" id="equip-form-title">Nouvel équipement</p>
         <input type="hidden" id="ef-id">
-        <div class="adm-form-group">
-          <label class="adm-label">Pièce</label>
-          <select class="adm-input" id="ef-room-id"></select>
-        </div>
+        <div class="adm-form-group"><label class="adm-label">Pièce</label><select class="adm-input" id="ef-room-id"></select></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div class="adm-form-group">
-            <label class="adm-label">Nom</label>
-            <input type="text" class="adm-input" id="ef-name" placeholder="Télévision 4K">
-          </div>
+          <div class="adm-form-group"><label class="adm-label">Nom</label><input type="text" class="adm-input" id="ef-name" placeholder="Télévision 4K"></div>
           <div class="adm-form-group">
             <label class="adm-label">Icône</label>
             <select class="adm-input" id="ef-icon">
               <optgroup label="Équipements">
-              <option value="wrench">🔧 Outil</option>
-              <option value="tv-2">📺 TV</option>
-              <option value="wifi">📶 WiFi</option>
-              <option value="wind">💨 Clim / Sèche-cheveux</option>
-              <option value="flame">🔥 Plaque</option>
-              <option value="square">⬜ Four</option>
-              <option value="droplets">💧 Lave-vaisselle</option>
-              <option value="coffee">☕ Cafetière</option>
-              <option value="moon">🌙 Literie</option>
-              <option value="sun">☀️ Store / Volet</option>
-              <option value="droplet">🚿 Douche</option>
-              <option value="zap">⚡ Électricité</option>
-              <option value="thermometer">🌡️ Chauffage</option>
-              <option value="key">🔑 Clé / Accès</option>
-              <option value="lock">🔒 Cadenas</option>
-              <option value="trash-2">🗑️ Poubelle</option>
-              <option value="utensils">🍴 Ustensiles</option>
-              <option value="refrigerator">🧊 Réfrigérateur</option>
-              <option value="sofa">🛋️ Canapé</option>
-              <option value="bath">🛁 Baignoire</option>
-              <option value="info">ℹ️ Info</option>
+                <option value="wrench">🔧 Outil</option>
+                <option value="tv-2">📺 TV</option>
+                <option value="wifi">📶 WiFi</option>
+                <option value="wind">💨 Clim / Sèche-cheveux</option>
+                <option value="flame">🔥 Plaque</option>
+                <option value="square">⬜ Four</option>
+                <option value="droplets">💧 Lave-vaisselle</option>
+                <option value="coffee">☕ Cafetière</option>
+                <option value="moon">🌙 Literie</option>
+                <option value="sun">☀️ Store / Volet</option>
+                <option value="droplet">🚿 Douche</option>
+                <option value="zap">⚡ Électricité</option>
+                <option value="thermometer">🌡️ Chauffage</option>
+                <option value="key">🔑 Clé / Accès</option>
+                <option value="lock">🔒 Cadenas</option>
+                <option value="trash-2">🗑️ Poubelle</option>
+                <option value="utensils">🍴 Ustensiles</option>
+                <option value="refrigerator">🧊 Réfrigérateur</option>
+                <option value="sofa">🛋️ Canapé</option>
+                <option value="bath">🛁 Baignoire</option>
+                <option value="info">ℹ️ Info</option>
               </optgroup>
             </select>
           </div>
         </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Instructions</label>
-          <textarea class="adm-input" id="ef-instructions" rows="3" placeholder="Comment utiliser…"></textarea>
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Astuce</label>
-          <input type="text" class="adm-input" id="ef-tips" placeholder="Conseil pratique…">
-        </div>
+        <div class="adm-form-group"><label class="adm-label">Instructions</label><textarea class="adm-input" id="ef-instructions" rows="3" placeholder="Comment utiliser…"></textarea></div>
+        <div class="adm-form-group"><label class="adm-label">Astuce</label><input type="text" class="adm-input" id="ef-tips" placeholder="Conseil pratique…"></div>
         <div style="display:flex;gap:0.5rem;">
-          <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="adminSaveEquip()">
-            <i data-lucide="save" style="width:12px;height:12px;"></i> Sauvegarder
-          </button>
+          <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="adminSaveEquip()"><i data-lucide="save" style="width:12px;height:12px;"></i> Sauvegarder</button>
           <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeEquipForm()">Annuler</button>
         </div>
       </div>
-
-      <div id="drw-equip-list">
-        <p style="color:var(--adm-text-muted);font-size:0.82rem;">Chargement…</p>
-      </div>
+      <div id="drw-equip-list"><p style="color:var(--adm-text-muted);font-size:0.82rem;">Chargement…</p></div>
     </div>
 
-    <!-- ── Onglet : Règles ── -->
+    <!-- ── Contenu (anciennement Règles) ── -->
     <div class="drw-panel" id="drw-rules">
       <form onsubmit="adminSaveRules(event)">
-        <p class="adm-section-title">Arrivée & Départ</p>
+        <p class="adm-section-title">Arrivée</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div class="adm-form-group">
-            <label class="adm-label">Check-in</label>
-            <input type="time" class="adm-input" id="dr-checkin-time">
-          </div>
-          <div class="adm-form-group">
-            <label class="adm-label">Check-out</label>
-            <input type="time" class="adm-input" id="dr-checkout-time">
-          </div>
+          <div class="adm-form-group"><label class="adm-label">Heure check-in</label><input type="time" class="adm-input" id="dr-checkin-time"></div>
+          <div class="adm-form-group"><label class="adm-label">Heure check-out</label><input type="time" class="adm-input" id="dr-checkout-time"></div>
         </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Instructions arrivée</label>
-          <textarea class="adm-input" id="dr-checkin-inst" rows="2" placeholder="Code boîte à clés…"></textarea>
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Instructions départ</label>
-          <textarea class="adm-input" id="dr-checkout-inst" rows="2" placeholder="Déposer les clés…"></textarea>
+        <div class="adm-form-group"><label class="adm-label">Instructions arrivée</label><textarea class="adm-input" id="dr-checkin-inst" rows="3" placeholder="Code boîte à clés…"></textarea></div>
+
+        <div class="adm-separator"></div>
+        <p class="adm-section-title">Départ</p>
+        <div class="adm-form-group"><label class="adm-label">Instructions départ</label><textarea class="adm-input" id="dr-checkout-inst" rows="3" placeholder="Déposer les clés…"></textarea></div>
+
+        <div class="adm-separator"></div>
+        <p class="adm-section-title">Wi-Fi</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+          <div class="adm-form-group"><label class="adm-label">Réseau</label><input type="text" class="adm-input" id="dr-wifi-name" placeholder="MonWifi"></div>
+          <div class="adm-form-group"><label class="adm-label">Mot de passe</label><input type="text" class="adm-input" id="dr-wifi-pass" placeholder="••••"></div>
         </div>
 
         <div class="adm-separator"></div>
-        <p class="adm-section-title">WiFi</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div class="adm-form-group">
-            <label class="adm-label">Réseau</label>
-            <input type="text" class="adm-input" id="dr-wifi-name" placeholder="MonWifi">
-          </div>
-          <div class="adm-form-group">
-            <label class="adm-label">Mot de passe</label>
-            <input type="text" class="adm-input" id="dr-wifi-pass" placeholder="••••">
-          </div>
-        </div>
-
-        <div class="adm-separator"></div>
-        <p class="adm-section-title">Poubelles</p>
-        <div class="adm-form-group">
-          <textarea class="adm-input" id="dr-trash" rows="2" placeholder="Local, codes, tri sélectif…"></textarea>
-        </div>
+        <p class="adm-section-title">Stationnement</p>
+        <div class="adm-form-group"><textarea class="adm-input" id="dr-parking" rows="3" placeholder="Parking public à 50m, code d'accès…"></textarea></div>
 
         <div class="adm-separator"></div>
         <p class="adm-section-title">Règlement intérieur</p>
-        <div class="adm-form-group">
-          <textarea class="adm-input" id="dr-house-rules" rows="5" placeholder="• Pas de fête&#10;• Non fumeur…"></textarea>
-        </div>
+        <div class="adm-form-group"><textarea class="adm-input" id="dr-house-rules" rows="5" placeholder="• Pas de fête&#10;• Non fumeur…"></textarea></div>
+        <div class="adm-form-group"><label class="adm-label">Instructions poubelles</label><textarea class="adm-input" id="dr-trash" rows="2" placeholder="Local, codes, tri sélectif…"></textarea></div>
+
+        <div class="adm-separator"></div>
+        <p class="adm-section-title">À découvrir</p>
+        <div class="adm-form-group"><textarea class="adm-input" id="dr-places" rows="5" placeholder="• Restaurant Le Mistral — 2 min à pied&#10;• Marché du Cours Saleya — 10 min…"></textarea></div>
 
         <button type="submit" class="adm-btn adm-btn-gold" style="width:100%;justify-content:center;">
-          <i data-lucide="save" style="width:13px;height:13px;"></i> Enregistrer les règles
+          <i data-lucide="save" style="width:13px;height:13px;"></i> Enregistrer le contenu
         </button>
       </form>
     </div>
 
-    <!-- ── Onglet : Réservation ── -->
-    <div class="drw-panel" id="drw-booking">
-      <!-- Liste des options existantes -->
-      <div id="booking-list" style="margin-bottom:1.25rem;display:flex;flex-direction:column;gap:0.5rem;"></div>
+    <!-- ── FAQ ── -->
+    <div class="drw-panel" id="drw-faq">
+      <div id="faq-admin-list" style="margin-bottom:1rem;display:flex;flex-direction:column;gap:0.5rem;"></div>
+      <div class="adm-separator"></div>
+      <p class="adm-section-title" style="margin-bottom:0.75rem;">Ajouter une question</p>
+      <div class="adm-form-group"><label class="adm-label">Question</label><input type="text" class="adm-input" id="faq-q" placeholder="À quelle heure puis-je arriver ?"></div>
+      <div class="adm-form-group"><label class="adm-label">Réponse</label><textarea class="adm-input" id="faq-a" rows="3" placeholder="Réponse détaillée…"></textarea></div>
+      <button class="adm-btn adm-btn-gold" style="width:100%;justify-content:center;" onclick="adminAddFaq()">
+        <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
+      </button>
+    </div>
 
-      <!-- Formulaire d'ajout -->
+    <!-- ── Réservation ── -->
+    <div class="drw-panel" id="drw-booking">
+      <div id="booking-list" style="margin-bottom:1.25rem;display:flex;flex-direction:column;gap:0.5rem;"></div>
       <p class="adm-section-title" style="margin-bottom:0.75rem;">Ajouter un lien</p>
       <form onsubmit="adminAddBooking(event)">
-        <div class="adm-form-group">
-          <label class="adm-label">Nom affiché</label>
-          <input type="text" class="adm-input" id="db-label" placeholder="Réservation directe, Airbnb…">
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Lien de réservation *</label>
-          <input type="url" class="adm-input" id="db-url" placeholder="https://…">
-        </div>
+        <div class="adm-form-group"><label class="adm-label">Nom affiché</label><input type="text" class="adm-input" id="db-label" placeholder="Réservation directe, Airbnb…"></div>
+        <div class="adm-form-group"><label class="adm-label">Lien de réservation *</label><input type="url" class="adm-input" id="db-url" placeholder="https://…"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div class="adm-form-group">
-            <label class="adm-label">Prix / nuit</label>
-            <input type="number" class="adm-input" id="db-price" placeholder="120" min="0">
-          </div>
-          <div class="adm-form-group">
-            <label class="adm-label">Devise</label>
+          <div class="adm-form-group"><label class="adm-label">Prix / nuit</label><input type="number" class="adm-input" id="db-price" placeholder="120" min="0"></div>
+          <div class="adm-form-group"><label class="adm-label">Devise</label>
             <select class="adm-input" id="db-currency">
               <option value="EUR">EUR €</option>
               <option value="USD">USD $</option>
@@ -506,60 +467,39 @@
       </form>
     </div>
 
-    <!-- ── Onglet : Paramètres ── -->
+    <!-- ── Paramètres ── -->
     <div class="drw-panel" id="drw-settings">
       <form onsubmit="adminSaveSettings(event)">
         <p class="adm-section-title">Contact voyageur</p>
-        <div class="adm-form-group">
-          <label class="adm-label">Nom du site</label>
-          <input type="text" class="adm-input" id="ds-sitename" placeholder="Clair-Obscur">
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Téléphone d'aide</label>
-          <input type="text" class="adm-input" id="ds-phone" placeholder="+33 6 00 00 00 00">
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Email d'aide</label>
-          <input type="email" class="adm-input" id="ds-email" placeholder="contact@example.fr">
-        </div>
+        <div class="adm-form-group"><label class="adm-label">Nom du site</label><input type="text" class="adm-input" id="ds-sitename" placeholder="Clair-Obscur"></div>
+        <div class="adm-form-group"><label class="adm-label">Téléphone d'aide</label><input type="text" class="adm-input" id="ds-phone" placeholder="+33 6 00 00 00 00"></div>
+        <div class="adm-form-group"><label class="adm-label">Email d'aide</label><input type="email" class="adm-input" id="ds-email" placeholder="contact@example.fr"></div>
         <button type="submit" class="adm-btn adm-btn-gold" style="width:100%;justify-content:center;">
           <i data-lucide="save" style="width:13px;height:13px;"></i> Enregistrer
         </button>
       </form>
-
       <div class="adm-separator"></div>
-
       <form onsubmit="adminChangePassword(event)">
         <p class="adm-section-title">Changer le mot de passe</p>
-        <div class="adm-form-group">
-          <label class="adm-label">Mot de passe actuel</label>
-          <input type="password" class="adm-input" id="ds-cur-pass" required>
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Nouveau mot de passe</label>
-          <input type="password" class="adm-input" id="ds-new-pass" required placeholder="Nouveau mot de passe">
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Confirmer</label>
-          <input type="password" class="adm-input" id="ds-confirm-pass" required>
-        </div>
+        <div class="adm-form-group"><label class="adm-label">Mot de passe actuel</label><input type="password" class="adm-input" id="ds-cur-pass" required></div>
+        <div class="adm-form-group"><label class="adm-label">Nouveau mot de passe</label><input type="password" class="adm-input" id="ds-new-pass" required placeholder="Nouveau mot de passe"></div>
+        <div class="adm-form-group"><label class="adm-label">Confirmer</label><input type="password" class="adm-input" id="ds-confirm-pass" required></div>
         <button type="submit" class="adm-btn adm-btn-ghost" style="width:100%;justify-content:center;">
           <i data-lucide="key" style="width:13px;height:13px;"></i> Changer le mot de passe
         </button>
       </form>
     </div>
 
-  </div><!-- /drawer-body -->
+  </div>
 </aside>
 
-<!-- ══ Modal placement hotspot (admin) ═══════════════════ -->
+<!-- ══ Modal placement hotspot (admin) ═══════════════════════ -->
 <div id="hotspot-modal">
   <div style="width:100%;max-width:min(920px,92vw);">
-    <!-- Barre du modal -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
       <div>
         <p style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);">Mode placement</p>
-        <p id="hm-room-name" style="font-size:0.9rem;font-weight:500;color:#eee;">— </p>
+        <p id="hm-room-name" style="font-size:0.9rem;font-weight:500;color:#eee;">—</p>
       </div>
       <div style="display:flex;align-items:center;gap:0.75rem;">
         <p style="font-size:0.75rem;color:var(--adm-text-muted);">Cliquez sur la photo pour placer un point</p>
@@ -568,46 +508,34 @@
         </button>
       </div>
     </div>
-
-    <!-- Photo + points -->
     <div id="hotspot-modal-img-wrap" onclick="handleHotspotPhotoClick(event)">
       <img id="hm-photo" src="" alt="">
-      <!-- mini-formulaire positionné dynamiquement -->
       <div id="hotspot-place-form">
-        <!-- Switcher 3 modes -->
         <div style="display:flex;margin-bottom:0.6rem;border:1px solid var(--adm-border);">
           <button id="hm-mode-existing" class="hm-mode-btn active" type="button">Équipement</button>
           <button id="hm-mode-free"     class="hm-mode-btn"        type="button">Note</button>
         </div>
-
-        <!-- Mode : équipement existant -->
         <div id="hm-block-existing">
           <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.35rem;">Choisir un équipement</p>
           <select id="hm-equip-select" class="adm-input adm-input-sm" style="margin-bottom:0.5rem;"></select>
         </div>
-
-        <!-- Mode : note libre -->
         <div id="hm-block-free" style="display:none;">
           <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Titre</p>
           <input type="text" id="hm-free-label" class="adm-input adm-input-sm" placeholder="Balcon" style="margin-bottom:0.3rem;">
           <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Description (optionnel)</p>
           <textarea id="hm-free-desc" class="adm-input adm-input-sm" rows="2" placeholder="Vue sur les toits…" style="margin-bottom:0.4rem;"></textarea>
         </div>
-
-<div style="display:flex;gap:0.4rem;margin-top:0.25rem;">
+        <div style="display:flex;gap:0.4rem;margin-top:0.25rem;">
           <button id="hm-confirm-btn" class="adm-btn adm-btn-gold adm-btn-xs" type="button" style="flex:1;justify-content:center;">✓ OK</button>
           <button id="hm-cancel-btn"  class="adm-btn adm-btn-ghost adm-btn-xs" type="button">✕</button>
         </div>
       </div>
-      <!-- Les points existants sont injectés ici par JS -->
     </div>
-
-    <!-- Liste des points existants -->
     <div id="hm-hotspots-list" style="margin-top:0.75rem;display:flex;flex-wrap:wrap;gap:0.5rem;"></div>
   </div>
 </div>
 
-<!-- ══ Toast container ════════════════════════════════════ -->
+<!-- ══ Toast container ════════════════════════════════════════ -->
 <div id="toast-container"></div>
 
 <script src="/js/main.js"></script>

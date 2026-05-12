@@ -55,10 +55,11 @@ router.get('/:id', (req, res) => {
 
   const rules    = db.prepare('SELECT * FROM rules WHERE property_id = ?').get(prop.id);
   const bookings = db.prepare('SELECT * FROM bookings WHERE property_id = ? AND is_active = 1 ORDER BY id ASC').all(prop.id);
+  const faq      = db.prepare('SELECT * FROM faq WHERE property_id = ? ORDER BY order_index ASC, id ASC').all(prop.id);
   const settings = db.prepare('SELECT key, value FROM settings').all();
   const settingsMap = Object.fromEntries(settings.map(s => [s.key, s.value]));
 
-  res.json({ ...prop, rooms, rules, bookings, settings: settingsMap });
+  res.json({ ...prop, rooms, rules, bookings, faq, settings: settingsMap });
 });
 
 // ── ADMIN ─────────────────────────────────────────────────
