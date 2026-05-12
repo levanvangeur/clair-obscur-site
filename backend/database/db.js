@@ -110,6 +110,10 @@ function initDatabase() {
     );
   `);
 
+  // Migrations — colonnes ajoutées après la version initiale
+  try { db.exec('ALTER TABLE photo_hotspots ADD COLUMN target_image_id INTEGER REFERENCES room_images(id) ON DELETE SET NULL'); } catch(_) {}
+  try { db.exec('ALTER TABLE photo_hotspots ADD COLUMN icon_override TEXT'); } catch(_) {}
+
   seedIfEmpty(db);
   console.log('✅ Base de données initialisée');
 }

@@ -25,15 +25,30 @@ router.get('/:id', (req, res) => {
   const rooms = db.prepare('SELECT * FROM rooms WHERE property_id = ? ORDER BY order_index').all(prop.id);
   rooms.forEach(room => {
     room.images = db.prepare('SELECT * FROM room_images WHERE room_id = ? ORDER BY order_index').all(room.id);
-    // Hotspots inclus dans chaque image
+    // Hotspots inclus dans chaque image (tous types : équipement, note, navigation)
     room.images.forEach(img => {
-      img.hotspots = db.prepare(`
-        SELECT h.id, h.x_percent, h.y_percent,
-               e.id as equipment_id, e.name, e.icon, e.instructions, e.tips
+      const rows = db.prepare(`
+        SELECT h.id, h.x_percent, h.y_percent, h.label, h.description,
+               h.target_image_id, h.icon_override,
+               e.id AS equipment_id, e.name, e.icon, e.instructions, e.tips
         FROM photo_hotspots h
-        JOIN equipment e ON e.id = h.equipment_id
+        LEFT JOIN equipment e ON e.id = h.equipment_id
         WHERE h.room_image_id = ?
       `).all(img.id);
+      img.hotspots = rows.map(h => ({
+        id:              h.id,
+        x_percent:       h.x_percent,
+        y_percent:       h.y_percent,
+        hotspot_type:    h.target_image_id ? 'navigation'
+                       : h.equipment_id    ? 'equipment'
+                       :                     'note',
+        target_image_id: h.target_image_id || null,
+        equipment_id:    h.equipment_id    || null,
+        name:            h.name || h.label || '—',
+        icon:            h.icon_override || h.icon || (h.target_image_id ? 'arrow-right' : 'info'),
+        instructions:    h.instructions || h.description || '',
+        tips:            h.tips || '',
+      }));
     });
     room.equipment = db.prepare('SELECT * FROM equipment WHERE room_id = ?').all(room.id);
   });

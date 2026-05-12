@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function renderAll(data) {
   updateMeta(data);
   renderHero(data);
-  renderRooms(data.rooms || []);
+  renderVirtualTour(data.rooms || []);
   renderGuide(data.rooms || []);
   renderRules(data.rules, data.settings);
   renderBooking(data, data.bookings);
@@ -76,83 +76,190 @@ function renderHero(data) {
   }
 }
 
-function renderRooms(rooms) {
-  const container = document.getElementById('rooms-container');
+// ══════════════════════════════════════════════════════════
+// ── VISITE VIRTUELLE ─────────────────────────────────────
+// ══════════════════════════════════════════════════════════
+let vtImageMap  = {};   // imageId → { id, filename, alt, roomId, roomName, roomOrder, hotspots }
+let vtRoomList  = [];   // [{ id, name, imageIds: [] }]
+let vtCurrentId = null; // imageId courant
+let vtHistory   = [];   // pile pour le bouton retour
 
-  // Aplatit toutes les photos de toutes les pièces dans un seul tableau
-  const allSlides = [];
+function renderVirtualTour(rooms) {
+  // Construire la map complète des images
+  vtImageMap = {};
+  vtRoomList = [];
+
   rooms.forEach(room => {
-    (room.images || []).forEach(img => allSlides.push({ img, room }));
+    const imageIds = [];
+    (room.images || []).forEach(img => {
+      vtImageMap[img.id] = {
+        id: img.id, filename: img.filename, alt: img.alt_text || room.name,
+        roomId: room.id, roomName: room.name, roomOrder: room.order_index,
+        hotspots: img.hotspots || [],
+      };
+      imageIds.push(img.id);
+    });
+    if (imageIds.length) vtRoomList.push({ id: room.id, name: room.name, imageIds });
   });
 
-  if (!allSlides.length) {
-    container.innerHTML = '<div class="section" style="color:var(--text-muted);text-align:center;padding:4rem 2rem;">Aucune photo configurée — ajoutez-en via le panneau admin.</div>';
+  // Aucune photo ?
+  const hasPhotos = vtRoomList.some(r => r.imageIds.length > 0);
+  if (!hasPhotos) {
+    document.getElementById('vt-tabs').innerHTML = '';
+    document.getElementById('vt-photo-wrap').innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);font-size:0.9rem;">Aucune photo — ajoutez-en via le panneau admin.</div>';
     return;
   }
 
-  const total = allSlides.length;
+  // Tabs pièces
+  const tabsEl = document.getElementById('vt-tabs');
+  tabsEl.innerHTML = vtRoomList.map((r, i) => `
+    <button class="vt-tab ${i===0?'active':''}" data-room="${r.id}" onclick="vtSelectRoom(${r.id})">
+      ${esc(r.name)}
+    </button>`).join('');
 
-  container.innerHTML = `
-    <div class="carousel-wrap" id="cwrap-global">
-      <div class="carousel" id="car-global">
-        ${allSlides.map(({ img, room }, idx) => `
-          <div class="carousel-slide" data-idx="${idx}">
-            <img src="/uploads/${esc(img.filename)}"
-                 alt="${esc(img.alt_text || room.name)}"
-                 loading="${idx === 0 ? 'eager' : 'lazy'}"
-                 onclick="openLightboxGlobal(${idx})">
-            <div class="slide-room-tag">${esc(room.name)}</div>
-            ${(img.hotspots || []).map(h => `
-              <div class="hotspot" data-x="${h.x_percent}" data-y="${h.y_percent}" onclick="toggleHotspotPopup(event,this)">
-                <div class="hotspot-pulse"></div>
-                <div class="hotspot-ring">${iconSvg(h.icon, 11)}</div>
-                <div class="hotspot-popup">
-                  <div class="hotspot-popup-inner">
-                    <div class="hotspot-popup-icon">${iconSvg(h.icon, 14)}</div>
-                    <p class="hotspot-popup-name">${esc(h.name)}</p>
-                    ${h.instructions ? `<p class="hotspot-popup-instructions">${esc(h.instructions)}</p>` : ''}
-                    ${h.tips ? `<div class="hotspot-popup-tips">💡 ${esc(h.tips)}</div>` : ''}
-                  </div>
-                </div>
-              </div>`).join('')}
-          </div>`).join('')}
-      </div>
+  // Prépare lightbox globale
+  currentImages = Object.values(vtImageMap).map(im => `/uploads/${im.filename}`);
 
-      ${total > 1 ? `
-        <button class="carousel-btn carousel-btn-prev" onclick="carSlide('global',-1)" aria-label="Précédent">
-          <i data-lucide="chevron-left" style="width:20px;height:20px;"></i>
-        </button>
-        <button class="carousel-btn carousel-btn-next" onclick="carSlide('global',1)" aria-label="Suivant">
-          <i data-lucide="chevron-right" style="width:20px;height:20px;"></i>
-        </button>
-        <div class="carousel-counter" id="ccount-global">1 / ${total}</div>
-        <div class="carousel-dots" id="cdots-global">
-          ${allSlides.map((_,i) => `<div class="carousel-dot ${i===0?'active':''}" onclick="carGoTo('global',${i})"></div>`).join('')}
-        </div>` : ''}
-    </div>`;
-
-  // Sync scroll → compteur + dots
-  const car = document.getElementById('car-global');
-  if (car && total > 1) {
-    car.addEventListener('scroll', () => {
-      const idx = Math.round(car.scrollLeft / car.clientWidth);
-      const count = document.getElementById('ccount-global');
-      const dots  = document.querySelectorAll('#cdots-global .carousel-dot');
-      if (count) count.textContent = `${idx + 1} / ${total}`;
-      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
-    }, { passive: true });
-  }
-
-  // Lightbox globale
-  currentImages = allSlides.map(s => `/uploads/${s.img.filename}`);
-
-  // Ferme les popups hotspot si on clique ailleurs
+  // Ferme popups si clic ailleurs
   document.addEventListener('click', e => {
     if (!e.target.closest('.hotspot')) closeAllHotspotPopups();
   }, { capture: true });
 
-  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); setupHotspotPositions(); }, 100);
+  // Affiche la première photo de la première pièce
+  vtHistory = [];
+  vtNavigateTo(vtRoomList[0].imageIds[0], false);
 }
+
+function vtSelectRoom(roomId) {
+  const room = vtRoomList.find(r => r.id === roomId);
+  if (!room || !room.imageIds.length) return;
+  vtHistory = [];
+  vtNavigateTo(room.imageIds[0], false);
+  // Mettre à jour le tab actif
+  document.querySelectorAll('.vt-tab').forEach(t =>
+    t.classList.toggle('active', Number(t.dataset.room) === roomId));
+}
+window.vtSelectRoom = vtSelectRoom;
+
+function vtNavigateTo(imageId, pushHistory = true) {
+  if (pushHistory && vtCurrentId && vtCurrentId !== imageId) vtHistory.push(vtCurrentId);
+  vtCurrentId = imageId;
+  vtRenderPhoto(imageId);
+}
+window.vtNavigateTo = vtNavigateTo;
+
+window.vtGoBack = function() {
+  if (!vtHistory.length) return;
+  const prev = vtHistory.pop();
+  vtNavigateTo(prev, false);
+};
+
+function vtRenderPhoto(imageId) {
+  const data = vtImageMap[imageId];
+  if (!data) return;
+
+  const photo   = document.getElementById('vt-photo');
+  const hotsEl  = document.getElementById('vt-hotspots');
+  const backBtn = document.getElementById('vt-back');
+  const roomLbl = document.getElementById('vt-room-label');
+  const counter = document.getElementById('vt-photo-counter');
+
+  // Fade transition
+  photo.classList.add('fading');
+  setTimeout(() => {
+    photo.src = `/uploads/${data.filename}`;
+    photo.alt = data.alt;
+    photo.onload = () => {
+      photo.classList.remove('fading');
+      vtPositionHotspots();
+    };
+    if (photo.complete) { photo.classList.remove('fading'); vtPositionHotspots(); }
+  }, 200);
+
+  // Bouton retour
+  backBtn.style.display = vtHistory.length ? 'flex' : 'none';
+
+  // Info bas de photo
+  roomLbl.textContent = data.roomName;
+  const room = vtRoomList.find(r => r.id === data.roomId);
+  if (room) {
+    const idx = room.imageIds.indexOf(imageId);
+    counter.textContent = room.imageIds.length > 1 ? `${idx + 1} / ${room.imageIds.length}` : '';
+  }
+
+  // Activer le bon tab
+  document.querySelectorAll('.vt-tab').forEach(t =>
+    t.classList.toggle('active', Number(t.dataset.room) === data.roomId));
+
+  // Hotspots
+  hotsEl.innerHTML = '';
+  data.hotspots.forEach(h => {
+    if (h.hotspot_type === 'navigation' && h.target_image_id) {
+      const targetData = vtImageMap[h.target_image_id];
+      const label = h.name || (targetData ? targetData.roomName : '');
+      const el = document.createElement('div');
+      el.className = 'hotspot-nav';
+      el.dataset.x = h.x_percent;
+      el.dataset.y = h.y_percent;
+      el.innerHTML = `
+        <div class="hotspot-nav-ring">${iconSvg(h.icon || 'arrow-right', 20)}</div>
+        ${label ? `<div class="hotspot-nav-label">${esc(label)}</div>` : ''}`;
+      el.addEventListener('click', () => vtNavigateTo(h.target_image_id));
+      hotsEl.appendChild(el);
+    } else {
+      // Hotspot équipement ou note
+      const el = document.createElement('div');
+      el.className = 'hotspot';
+      el.dataset.x = h.x_percent;
+      el.dataset.y = h.y_percent;
+      el.innerHTML = `
+        <div class="hotspot-pulse"></div>
+        <div class="hotspot-ring">${iconSvg(h.icon, 11)}</div>
+        <div class="hotspot-popup">
+          <div class="hotspot-popup-inner">
+            <div class="hotspot-popup-icon">${iconSvg(h.icon, 14)}</div>
+            <p class="hotspot-popup-name">${esc(h.name)}</p>
+            ${h.instructions ? `<p class="hotspot-popup-instructions">${esc(h.instructions)}</p>` : ''}
+            ${h.tips ? `<div class="hotspot-popup-tips">💡 ${esc(h.tips)}</div>` : ''}
+          </div>
+        </div>`;
+      el.addEventListener('click', e => toggleHotspotPopup(e, el));
+      hotsEl.appendChild(el);
+    }
+  });
+
+  // Vignettes de la pièce courante
+  vtRenderThumbs(data.roomId, imageId);
+
+  setTimeout(() => { lucide.createIcons(); vtPositionHotspots(); }, 80);
+}
+
+function vtRenderThumbs(roomId, activeImageId) {
+  const thumbsEl = document.getElementById('vt-thumbs');
+  const room = vtRoomList.find(r => r.id === roomId);
+  if (!room) { thumbsEl.innerHTML = ''; return; }
+
+  thumbsEl.innerHTML = room.imageIds.map(imgId => {
+    const d = vtImageMap[imgId];
+    if (!d) return '';
+    return `<img class="vt-thumb${imgId === activeImageId ? ' active' : ''}"
+              src="/uploads/${esc(d.filename)}"
+              alt="${esc(d.alt)}"
+              loading="lazy"
+              onclick="vtNavigateTo(${imgId})">`;
+  }).join('');
+}
+
+function vtPositionHotspots() {
+  const photo = document.getElementById('vt-photo');
+  if (!photo) return;
+  const allHots = document.querySelectorAll('#vt-hotspots .hotspot, #vt-hotspots .hotspot-nav');
+  allHots.forEach(el => positionHotspot(el, photo));
+}
+
+// Re-positionne si la fenêtre change de taille
+new ResizeObserver(vtPositionHotspots).observe(document.getElementById('vt-photo-wrap') || document.body);
 
 window.openLightboxGlobal = function(idx) {
   currentImageIndex = idx;
@@ -1020,14 +1127,16 @@ window.toast = function(msg, type = 'success') {
 // ══════════════════════════════════════════════════════════
 let hmImageId = null;
 let hmPending = null;
-let hmMode = 'existing'; // 'existing' | 'free'
+let hmMode = 'existing'; // 'existing' | 'free' | 'nav'
 
 function hmSetMode(mode) {
   hmMode = mode;
   document.getElementById('hm-mode-existing').classList.toggle('active', mode === 'existing');
   document.getElementById('hm-mode-free').classList.toggle('active', mode === 'free');
+  document.getElementById('hm-mode-nav').classList.toggle('active',      mode === 'nav');
   document.getElementById('hm-block-existing').style.display = mode === 'existing' ? 'block' : 'none';
   document.getElementById('hm-block-free').style.display     = mode === 'free'     ? 'block' : 'none';
+  document.getElementById('hm-block-nav').style.display      = mode === 'nav'      ? 'block' : 'none';
 }
 
 function hmCancel() {
@@ -1049,13 +1158,24 @@ async function hmConfirm() {
         x_percent: hmPending.x,
         y_percent: hmPending.y,
       });
-    } else {
+    } else if (hmMode === 'free') {
       const label       = document.getElementById('hm-free-label').value.trim();
       const description = document.getElementById('hm-free-desc').value.trim();
       if (!label) { toast('Le titre est requis', 'error'); return; }
       await apiFetch('/api/hotspots', true, 'POST', {
         room_image_id: hmImageId,
         label, description,
+        x_percent: hmPending.x,
+        y_percent: hmPending.y,
+      });
+    } else if (hmMode === 'nav') {
+      const targetId = document.getElementById('hm-nav-target').value;
+      if (!targetId) { toast('Sélectionnez une photo de destination', 'error'); return; }
+      const iconOverride = document.getElementById('hm-nav-icon').value || 'arrow-right';
+      await apiFetch('/api/hotspots', true, 'POST', {
+        room_image_id:   hmImageId,
+        target_image_id: Number(targetId),
+        icon_override:   iconOverride,
         x_percent: hmPending.x,
         y_percent: hmPending.y,
       });
@@ -1071,6 +1191,7 @@ async function hmConfirm() {
 document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('hm-mode-existing').addEventListener('click', function(e) { e.stopPropagation(); hmSetMode('existing'); });
   document.getElementById('hm-mode-free').addEventListener('click',     function(e) { e.stopPropagation(); hmSetMode('free'); });
+  document.getElementById('hm-mode-nav').addEventListener('click',      function(e) { e.stopPropagation(); hmSetMode('nav'); });
   document.getElementById('hm-confirm-btn').addEventListener('click',   function(e) { e.stopPropagation(); hmConfirm(); });
   document.getElementById('hm-cancel-btn').addEventListener('click',    function(e) { e.stopPropagation(); hmCancel(); });
 });
@@ -1084,10 +1205,18 @@ window.openHotspotModal = async function(imageId, filename, roomName) {
   document.getElementById('hotspot-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 
+  // Équipements disponibles
   const sel = document.getElementById('hm-equip-select');
   sel.innerHTML = adminRooms.flatMap(r =>
     (r.equipment || []).map(e => `<option value="${e.id}">${esc(r.name)} — ${esc(e.name)}</option>`)
   ).join('');
+
+  // Navigation : dropdown des photos cibles
+  populateNavTargetDropdown(imageId);
+
+  // Sélecteur de flèches
+  document.getElementById('hm-nav-icon').value = 'arrow-right';
+  renderNavArrowPicker();
 
   hmSetMode('existing');
   await renderHmDots();
@@ -1141,12 +1270,21 @@ async function renderHmDots() {
     const img  = document.getElementById('hm-photo');
 
     hotspots.forEach((h, i) => {
+      // Couleur selon le type
+      const typeColor = h.hotspot_type === 'navigation' ? '#6ec6ff'
+                      : h.hotspot_type === 'note'       ? '#a78bfa'
+                      :                                   'var(--gold)';
+      const typeIcon  = h.hotspot_type === 'navigation' ? '↗'
+                      : h.hotspot_type === 'note'       ? '📝'
+                      :                                   '⚙';
+
       // Dot sur la photo
       const dot = document.createElement('div');
       dot.className = 'hm-dot';
       dot.textContent = i + 1;
       dot.style.left = `${h.x_percent}%`;
       dot.style.top  = `${h.y_percent}%`;
+      dot.style.background = typeColor;
       dot.title = `Supprimer : ${h.name}`;
       dot.onclick = (e) => { e.stopPropagation(); deleteHotspot(h.id); };
       wrap.appendChild(dot);
@@ -1154,13 +1292,67 @@ async function renderHmDots() {
       // Liste sous la photo
       const tag = document.createElement('div');
       tag.style.cssText = 'display:flex;align-items:center;gap:0.4rem;padding:0.3rem 0.6rem;background:var(--adm-surface-2);border:1px solid var(--adm-border);font-size:0.75rem;color:var(--adm-text-muted);';
-      tag.innerHTML = `<span style="width:16px;height:16px;border-radius:50%;background:var(--gold);color:#060608;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;flex-shrink:0;">${i+1}</span>
+      tag.innerHTML = `
+        <span style="width:16px;height:16px;border-radius:50%;background:${typeColor};color:#060608;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;flex-shrink:0;">${i+1}</span>
+        <span style="font-size:0.7rem;opacity:0.6;">${typeIcon}</span>
         ${esc(h.name)}
         <button onclick="deleteHotspot(${h.id})" style="margin-left:auto;background:none;border:none;cursor:pointer;color:#e05555;font-size:0.75rem;" title="Supprimer">✕</button>`;
       document.getElementById('hm-hotspots-list').appendChild(tag);
     });
   } catch {}
 }
+
+// Remplit le dropdown "photo de destination" pour le mode navigation
+function populateNavTargetDropdown(currentImageId) {
+  const sel = document.getElementById('hm-nav-target');
+  sel.innerHTML = '';
+  adminRooms.forEach(room => {
+    const imgs = room.images || [];
+    if (!imgs.length) return;
+    const group = document.createElement('optgroup');
+    group.label = room.name;
+    imgs.forEach(img => {
+      if (img.id === currentImageId) return; // exclure la photo courante
+      const opt = document.createElement('option');
+      opt.value = img.id;
+      opt.textContent = img.filename.split('/').pop() || `Photo ${img.id}`;
+      group.appendChild(opt);
+    });
+    if (group.children.length) sel.appendChild(group);
+  });
+  if (!sel.options.length) {
+    sel.innerHTML = '<option value="">Aucune autre photo disponible</option>';
+  }
+}
+
+// Génère la grille de boutons flèche
+function renderNavArrowPicker() {
+  const wrap = document.getElementById('hm-nav-arrows');
+  const arrows = [
+    { icon: 'arrow-up-left',    label: '↖' },
+    { icon: 'arrow-up',         label: '↑' },
+    { icon: 'arrow-up-right',   label: '↗' },
+    { icon: 'arrow-left',       label: '←' },
+    { icon: 'door-open',        label: '🚪' },
+    { icon: 'arrow-right',      label: '→' },
+    { icon: 'arrow-down-left',  label: '↙' },
+    { icon: 'arrow-down',       label: '↓' },
+    { icon: 'arrow-down-right', label: '↘' },
+  ];
+  const current = document.getElementById('hm-nav-icon').value || 'arrow-right';
+  wrap.innerHTML = arrows.map(a => `
+    <button type="button" class="hm-arrow-btn${a.icon === current ? ' active' : ''}"
+            data-icon="${a.icon}" title="${a.icon}"
+            onclick="hmSelectArrow('${a.icon}')">
+      ${a.label}
+    </button>`).join('');
+}
+
+window.hmSelectArrow = function(icon) {
+  document.getElementById('hm-nav-icon').value = icon;
+  document.querySelectorAll('.hm-arrow-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.icon === icon));
+};
 
 async function deleteHotspot(id) {
   if (!confirm('Supprimer ce point ?')) return;

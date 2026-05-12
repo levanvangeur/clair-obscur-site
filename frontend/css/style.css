@@ -898,6 +898,215 @@ footer p { font-size: 0.78rem; color: var(--text-dim); }
   #help-modal { right: 1rem; left: 1rem; width: auto; }
 }
 
+/* ══════════════════════════════════════════════════════════
+   VISITE VIRTUELLE
+══════════════════════════════════════════════════════════ */
+
+/* Tabs pièces */
+#vt-tabs-wrap {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  position: sticky;
+  top: 60px;
+  z-index: 50;
+}
+#vt-tabs-wrap::-webkit-scrollbar { display: none; }
+
+#vt-tabs {
+  display: flex;
+  min-width: max-content;
+  padding: 0 1.5rem;
+}
+
+.vt-tab {
+  flex-shrink: 0;
+  padding: 0.875rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.vt-tab:hover { color: var(--text); }
+.vt-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* Viewer photo */
+#vt-viewer {
+  position: relative;
+  width: 100%;
+  background: var(--surface-2);
+}
+
+#vt-photo-wrap {
+  position: relative;
+  width: 100%;
+  height: clamp(220px, 75vw, 72vh);
+  overflow: hidden;
+  background: var(--surface-2);
+  cursor: default;
+}
+
+#vt-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: opacity 0.25s ease;
+}
+
+#vt-photo.fading { opacity: 0; }
+
+/* Bouton retour */
+#vt-back {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem;
+  background: rgba(6,6,8,0.78);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: var(--white);
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 100px;
+  transition: all 0.2s ease;
+}
+#vt-back:hover { background: var(--gold); border-color: transparent; color: var(--bg); }
+
+/* Bandeau info bas de photo */
+#vt-info {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 2.5rem 1.25rem 0.875rem;
+  background: linear-gradient(to top, rgba(6,6,8,0.82) 0%, transparent 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.vt-room-name {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.vt-photo-counter {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.05em;
+}
+
+/* Vignettes */
+#vt-thumbs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  min-height: 72px;
+}
+#vt-thumbs::-webkit-scrollbar { display: none; }
+
+.vt-thumb {
+  flex-shrink: 0;
+  width: 88px;
+  height: 66px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid transparent;
+  opacity: 0.55;
+  transition: all 0.2s ease;
+  border-radius: 2px;
+  background: var(--surface-2);
+}
+.vt-thumb.active { border-color: var(--gold); opacity: 1; }
+.vt-thumb:hover:not(.active) { opacity: 0.85; border-color: var(--border-light); }
+
+@media (max-width: 600px) {
+  .vt-thumb { width: 68px; height: 51px; }
+  #vt-photo-wrap { height: clamp(200px, 75vw, 55vh); }
+}
+
+/* Hotspot navigation (flèche) */
+.hotspot-nav {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.hotspot-nav-ring {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(6,6,8,0.55);
+  border: 2px solid rgba(201,169,110,0.75);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+}
+.hotspot-nav:hover .hotspot-nav-ring {
+  background: rgba(201,169,110,0.88);
+  color: var(--bg);
+  transform: scale(1.12);
+  border-color: transparent;
+}
+
+.hotspot-nav-label {
+  background: rgba(6,6,8,0.82);
+  backdrop-filter: blur(4px);
+  color: rgba(255,255,255,0.9);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.18rem 0.55rem;
+  border-radius: 100px;
+  white-space: nowrap;
+  pointer-events: none;
+  border: 1px solid rgba(201,169,110,0.3);
+}
+
+@media (max-width: 600px) {
+  .hotspot-nav-ring { width: 40px; height: 40px; }
+}
+
+/* Switcher mode hotspot admin - 3 boutons */
+.hm-mode-btn { flex: 1; }
+
 /* ── Scrollbar personnalisée ───────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
@@ -1165,6 +1374,16 @@ select.adm-input { cursor: pointer; }
   transition: all 0.2s; font-family: inherit;
 }
 .hm-mode-btn.active { background: var(--gold); color: #060608; }
+
+/* Grille de flèches — sélecteur d'icône navigation */
+.hm-arrow-btn {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--adm-border); background: var(--adm-surface-2);
+  color: var(--adm-text-muted); font-size: 0.85rem; border-radius: 3px;
+  cursor: pointer; transition: all 0.15s;
+}
+.hm-arrow-btn:hover { border-color: var(--gold); color: var(--gold); }
+.hm-arrow-btn.active { background: var(--gold); color: #060608; border-color: var(--gold); }
 
 /* Mini-form qui apparaît au clic sur la photo */
 #hotspot-place-form {

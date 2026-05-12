@@ -110,21 +110,45 @@
 </section>
 
 <!-- ══════════════════════════════════════════════════════
-     VISITE — PIÈCES
+     VISITE VIRTUELLE
 ══════════════════════════════════════════════════════ -->
-<section id="visite" style="padding:6rem 0;background:var(--bg);">
-  <div class="section" style="padding-top:0;padding-bottom:0;">
+<section id="visite" style="background:var(--bg);padding-top:5rem;">
+  <div class="section" style="padding-top:0;padding-bottom:2rem;">
     <div class="section-header reveal">
       <p class="text-eyebrow">Visite de l'appartement</p>
       <span class="divider-line"></span>
-      <h2 class="text-section-title">Chaque pièce,<br><em>pensée pour vous</em></h2>
+      <h2 class="text-section-title">Explorez chaque pièce<br><em>en visite virtuelle</em></h2>
     </div>
   </div>
-  <div id="rooms-container">
-    <div class="section" style="padding-top:2rem;">
-      <div class="skeleton" style="height:400px;width:100%;border-radius:2px;"></div>
+
+  <!-- Tabs pièces -->
+  <div id="vt-tabs-wrap">
+    <div id="vt-tabs"><div class="skeleton" style="height:44px;width:300px;border-radius:2px;margin:8px 1.5rem;"></div></div>
+  </div>
+
+  <!-- Viewer principal -->
+  <div id="vt-viewer">
+    <!-- Photo + hotspots -->
+    <div id="vt-photo-wrap">
+      <img id="vt-photo" src="" alt="">
+      <div id="vt-hotspots"></div>
+    </div>
+
+    <!-- Bouton retour -->
+    <button id="vt-back" onclick="vtGoBack()" style="display:none;">
+      <i data-lucide="arrow-left" style="width:14px;height:14px;"></i>
+      Retour
+    </button>
+
+    <!-- Info bas de photo -->
+    <div id="vt-info">
+      <span id="vt-room-label" class="vt-room-name"></span>
+      <span id="vt-photo-counter" class="vt-photo-counter"></span>
     </div>
   </div>
+
+  <!-- Vignettes -->
+  <div id="vt-thumbs"></div>
 </section>
 
 <!-- ══════════════════════════════════════════════════════
@@ -391,19 +415,29 @@
           <div class="adm-form-group">
             <label class="adm-label">Icône</label>
             <select class="adm-input" id="ef-icon">
+              <optgroup label="Équipements">
               <option value="wrench">🔧 Outil</option>
               <option value="tv-2">📺 TV</option>
               <option value="wifi">📶 WiFi</option>
-              <option value="wind">💨 Clim</option>
+              <option value="wind">💨 Clim / Sèche-cheveux</option>
               <option value="flame">🔥 Plaque</option>
               <option value="square">⬜ Four</option>
               <option value="droplets">💧 Lave-vaisselle</option>
               <option value="coffee">☕ Cafetière</option>
               <option value="moon">🌙 Literie</option>
-              <option value="sun">☀️ Store</option>
+              <option value="sun">☀️ Store / Volet</option>
               <option value="droplet">🚿 Douche</option>
-              <option value="zap">⚡ Élec</option>
+              <option value="zap">⚡ Électricité</option>
               <option value="thermometer">🌡️ Chauffage</option>
+              <option value="key">🔑 Clé / Accès</option>
+              <option value="lock">🔒 Cadenas</option>
+              <option value="trash-2">🗑️ Poubelle</option>
+              <option value="utensils">🍴 Ustensiles</option>
+              <option value="refrigerator">🧊 Réfrigérateur</option>
+              <option value="sofa">🛋️ Canapé</option>
+              <option value="bath">🛁 Baignoire</option>
+              <option value="info">ℹ️ Info</option>
+              </optgroup>
             </select>
           </div>
         </div>
@@ -586,10 +620,11 @@
       <img id="hm-photo" src="" alt="">
       <!-- mini-formulaire positionné dynamiquement -->
       <div id="hotspot-place-form">
-        <!-- Switcher 2 modes -->
+        <!-- Switcher 3 modes -->
         <div style="display:flex;margin-bottom:0.6rem;border:1px solid var(--adm-border);">
           <button id="hm-mode-existing" class="hm-mode-btn active" type="button">Équipement</button>
-          <button id="hm-mode-free"     class="hm-mode-btn"        type="button">Note libre</button>
+          <button id="hm-mode-free"     class="hm-mode-btn"        type="button">Note</button>
+          <button id="hm-mode-nav"      class="hm-mode-btn"        type="button">↗ Navigation</button>
         </div>
 
         <!-- Mode : équipement existant -->
@@ -600,10 +635,19 @@
 
         <!-- Mode : note libre -->
         <div id="hm-block-free" style="display:none;">
-          <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Titre (ex : Balcon…)</p>
+          <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Titre</p>
           <input type="text" id="hm-free-label" class="adm-input adm-input-sm" placeholder="Balcon" style="margin-bottom:0.3rem;">
           <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Description (optionnel)</p>
           <textarea id="hm-free-desc" class="adm-input adm-input-sm" rows="2" placeholder="Vue sur les toits…" style="margin-bottom:0.4rem;"></textarea>
+        </div>
+
+        <!-- Mode : navigation vers une autre photo -->
+        <div id="hm-block-nav" style="display:none;">
+          <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Photo de destination</p>
+          <select id="hm-nav-target" class="adm-input adm-input-sm" style="margin-bottom:0.5rem;"></select>
+          <p style="font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--adm-text-muted);margin-bottom:0.25rem;">Direction (icône)</p>
+          <div id="hm-nav-arrows" style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.4rem;"></div>
+          <input type="hidden" id="hm-nav-icon" value="arrow-right">
         </div>
 
         <div style="display:flex;gap:0.4rem;margin-top:0.25rem;">
