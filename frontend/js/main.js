@@ -48,15 +48,15 @@ function renderAll(data) {
   updateMeta(data);
   renderHero(data);
   renderBooking(data, data.bookings);
-  renderArrivee(data.rules);
-  renderDepart(data.rules);
+  renderArrivee(data.rules, data.checkinItems || []);
+  renderDepart(data.rules, data.checkinItems || []);
   renderWifi(data.rules);
   renderEquipements(data.rooms || []);
+  renderConfort(data.rooms || []);
   renderStationnement(data.rules);
   renderReglement(data.rules);
   renderContact(data.settings);
   renderDecouvrir(data.rules);
-  renderFaq(data.faq || []);
   setTimeout(() => lucide.createIcons(), 60);
 }
 
@@ -71,7 +71,8 @@ function renderHero(data) {
   const siteName = data.settings?.site_name || data.name;
   document.getElementById('nav-logo').textContent = siteName;
   document.getElementById('footer-name').textContent = siteName;
-  document.getElementById('hero-title').innerHTML = data.name.replace(' ', '<br>');
+  document.getElementById('hero-eyebrow').textContent = 'Bienvenue au';
+  document.getElementById('hero-title').textContent = data.name;
   document.getElementById('hero-tagline').textContent = data.tagline || '';
   if (data.main_image) {
     const bg = document.getElementById('hero-bg');
@@ -83,13 +84,32 @@ function renderHero(data) {
 
 
 function renderEquipements(rooms) {
-  const container = document.getElementById('equip-container');
   const all = rooms.flatMap(r => (r.equipment || []).map(e => ({ ...e, roomName: r.name })));
-  if (!all.length) { container.innerHTML = '<p style="color:var(--text-muted);padding:2rem 0;">Aucun équipement configuré.</p>'; return; }
+  renderAccordionSection(
+    all.filter(e => !e.category || e.category === 'equipement'),
+    'equip-container',
+    0,
+    'Aucun équipement configuré.'
+  );
+}
 
-  container.innerHTML = all.map((eq, i) => `
-    <div class="accordion-item" id="acc-${i}">
-      <button class="accordion-trigger" onclick="toggleAccordion(${i})" aria-expanded="false">
+function renderConfort(rooms) {
+  const all = rooms.flatMap(r => (r.equipment || []).map(e => ({ ...e, roomName: r.name })));
+  renderAccordionSection(
+    all.filter(e => e.category === 'confort'),
+    'confort-container',
+    500,
+    'Aucun élément de confort configuré.'
+  );
+}
+
+function renderAccordionSection(items, containerId, idOffset, emptyMsg) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!items.length) { container.innerHTML = `<p style="color:var(--text-muted);padding:2rem 0;">${emptyMsg}</p>`; return; }
+  container.innerHTML = items.map((eq, i) => `
+    <div class="accordion-item" id="acc-${idOffset + i}">
+      <button class="accordion-trigger" onclick="toggleAccordion(${idOffset + i})" aria-expanded="false">
         <div class="accordion-trigger-left">
           <div class="accordion-icon-wrap">${iconSvg(eq.icon, 16)}</div>
           <div><div class="accordion-trigger-name">${esc(eq.name)}</div><div class="accordion-room-tag">${esc(eq.roomName)}</div></div>
@@ -106,26 +126,36 @@ function renderEquipements(rooms) {
   setTimeout(() => lucide.createIcons(), 60);
 }
 
-function renderArrivee(rules) {
+function renderArrivee(rules, checkinItems) {
   const c = document.getElementById('arrivee-container');
   if (!rules) { c.innerHTML = ''; return; }
-  c.innerHTML = `
-    <div class="info-card reveal">
-      <div class="info-card-time">${esc(rules.check_in_time || '15:00')}</div>
-      ${rules.check_in_instructions ? `<p class="info-card-text">${esc(rules.check_in_instructions).replace(/\n/g,'<br>')}</p>` : ''}
-    </div>`;
-  setTimeout(() => setupScrollReveal(), 60);
+  const items = checkinItems.filter(i => i.type === 'checkin');
+  c.innerHTML = renderCheckinBlock(rules.check_in_time || '15:00', items);
+  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
 }
 
-function renderDepart(rules) {
+function renderDepart(rules, checkinItems) {
   const c = document.getElementById('depart-container');
   if (!rules) { c.innerHTML = ''; return; }
-  c.innerHTML = `
-    <div class="info-card reveal">
-      <div class="info-card-time">${esc(rules.check_out_time || '11:00')}</div>
-      ${rules.check_out_instructions ? `<p class="info-card-text">${esc(rules.check_out_instructions).replace(/\n/g,'<br>')}</p>` : ''}
-    </div>`;
-  setTimeout(() => setupScrollReveal(), 60);
+  const items = checkinItems.filter(i => i.type === 'checkout');
+  c.innerHTML = renderCheckinBlock(rules.check_out_time || '11:00', items);
+  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
+}
+
+function renderCheckinBlock(time, items) {
+  const timeHtml = `<div class="checkin-time reveal">${esc(time)}</div>`;
+  if (!items.length) return timeHtml;
+  const stepsHtml = items.map(it => `
+    <div class="checkin-step reveal">
+      <div class="checkin-step-icon">
+        <i data-lucide="${esc(it.icon || 'check')}" style="width:18px;height:18px;"></i>
+      </div>
+      <div class="checkin-step-body">
+        <p class="checkin-step-title">${esc(it.title)}</p>
+        ${it.description ? `<p class="checkin-step-desc">${esc(it.description).replace(/\n/g,'<br>')}</p>` : ''}
+      </div>
+    </div>`).join('');
+  return `${timeHtml}<div class="checkin-steps">${stepsHtml}</div>`;
 }
 
 function renderWifi(rules) {
@@ -235,30 +265,6 @@ function renderDecouvrir(rules) {
   setTimeout(() => setupScrollReveal(), 60);
 }
 
-function renderFaq(items) {
-  const c = document.getElementById('faq-container');
-  if (!items || !items.length) {
-    c.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">Aucune question fréquente configurée.</p>';
-    return;
-  }
-  const offset = 1000; // évite collision d'id avec accordion équipements
-  c.innerHTML = items.map((q, i) => `
-    <div class="accordion-item" id="acc-${offset + i}">
-      <button class="accordion-trigger" onclick="toggleAccordion(${offset + i})" aria-expanded="false">
-        <div class="accordion-trigger-left">
-          <div class="accordion-icon-wrap"><i data-lucide="help-circle" style="width:16px;height:16px;"></i></div>
-          <div><div class="accordion-trigger-name">${esc(q.question)}</div></div>
-        </div>
-        <i data-lucide="chevron-down" class="accordion-chevron" style="width:18px;height:18px;"></i>
-      </button>
-      <div class="accordion-body">
-        <div class="accordion-body-inner">
-          <p class="accordion-instructions">${esc(q.answer).replace(/\n/g,'<br>')}</p>
-        </div>
-      </div>
-    </div>`).join('');
-  setTimeout(() => lucide.createIcons(), 60);
-}
 
 function renderBooking(property, bookings) {
   const container = document.getElementById('booking-container');
@@ -576,12 +582,11 @@ window.switchDrawerTab = function(tab) {
   activeDrawerTab = tab;
   document.querySelectorAll('.drw-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.querySelectorAll('.drw-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById(`drw-${tab}`).classList.add('active');
+  document.getElementById(`drw-${tab}`)?.classList.add('active');
 
-  // Charge les données du tab
   const loaders = {
-    info: adminLoadInfo, rooms: adminLoadRooms, equip: adminLoadEquip,
-    rules: adminLoadRules, faq: adminLoadFaq, booking: adminLoadBooking, settings: adminLoadSettings,
+    info: adminLoadInfo, equip: adminLoadEquip,
+    rules: adminLoadRules, booking: adminLoadBooking, settings: adminLoadSettings,
   };
   if (loaders[tab]) loaders[tab]();
 };
@@ -590,9 +595,12 @@ async function adminLoadDrawerData() {
   try {
     propertyData = await apiFetch(`/api/properties/${PROPERTY_ID}`, false);
     adminRooms = propertyData.rooms || [];
-    document.getElementById('drawer-prop-name').textContent = propertyData.name;
+    const nameEl = document.getElementById('drawer-prop-name');
+    if (nameEl) nameEl.textContent = propertyData.name;
     populateRoomSelects();
-  } catch {}
+  } catch(err) {
+    console.error('Erreur chargement drawer:', err);
+  }
 }
 
 function populateRoomSelects() {
@@ -616,7 +624,46 @@ async function adminLoadInfo() {
     document.getElementById('dp-img-preview').innerHTML =
       `<img src="/uploads/${propertyData.main_image}?t=${Date.now()}" style="max-height:140px;border:1px solid var(--adm-border);">`;
   }
+  adminLoadGallery();
 }
+
+async function adminLoadGallery() {
+  const grid = document.getElementById('dp-gallery-grid');
+  if (!grid) return;
+  try {
+    const data = await apiFetch(`/api/properties/${PROPERTY_ID}`, false);
+    const gallery = data.gallery || [];
+    grid.innerHTML = gallery.length ? gallery.map(img => `
+      <div style="position:relative;aspect-ratio:4/3;overflow:hidden;border:1px solid var(--adm-border);">
+        <img src="/uploads/${esc(img.filename)}" style="width:100%;height:100%;object-fit:cover;">
+        <button onclick="adminDeleteGalleryImg(${img.id})"
+          style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.7);border:none;color:white;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;">✕</button>
+      </div>`).join('')
+    : '<p style="font-size:0.75rem;color:var(--adm-text-muted);grid-column:1/-1;">Aucune photo.</p>';
+  } catch {}
+}
+
+window.adminUploadGalleryImg = async function(input) {
+  if (!input.files[0]) return;
+  const fd = new FormData();
+  fd.append('image', input.files[0]);
+  try {
+    toast('Upload…', 'info');
+    await apiFetchForm(`/api/properties/${PROPERTY_ID}/gallery`, fd);
+    toast('Photo ajoutée');
+    adminLoadGallery();
+  } catch (err) { toast(err.message, 'error'); }
+  input.value = '';
+};
+
+window.adminDeleteGalleryImg = async function(imgId) {
+  if (!confirm('Supprimer cette photo ?')) return;
+  try {
+    await apiFetch(`/api/properties/${PROPERTY_ID}/gallery/${imgId}`, true, 'DELETE');
+    toast('Photo supprimée');
+    adminLoadGallery();
+  } catch (err) { toast(err.message, 'error'); }
+};
 
 window.adminSaveProp = async function(e) {
   e.preventDefault();
@@ -642,141 +689,6 @@ window.adminUploadPropImage = async function(input) {
     document.getElementById('dp-img-preview').innerHTML =
       `<img src="/uploads/${res.filename}?t=${Date.now()}" style="max-height:140px;border:1px solid var(--adm-border);">`;
     toast('Image mise à jour');
-    await refreshPage();
-  } catch (err) { toast(err.message, 'error'); }
-};
-
-// ── Pièces ──
-async function adminLoadRooms() {
-  const list = document.getElementById('drw-rooms-list');
-  try {
-    const rooms = await apiFetch(`/api/rooms/${PROPERTY_ID}`, false);
-    adminRooms = rooms;
-    populateRoomSelects();
-    if (!rooms.length) {
-      list.innerHTML = '<p style="color:var(--adm-text-muted);font-size:0.82rem;">Aucune pièce. Cliquez sur "Ajouter".</p>';
-      return;
-    }
-    list.innerHTML = rooms.map(room => `
-      <div style="border:1px solid var(--adm-border);margin-bottom:0.75rem;">
-        <div style="padding:0.75rem;display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <p style="font-size:0.88rem;font-weight:500;">${esc(room.name)}</p>
-            <p style="font-size:0.75rem;color:var(--adm-text-muted);">${(room.images||[]).length} photo(s) · ${(room.equipment||[]).length} équipement(s)</p>
-          </div>
-          <div style="display:flex;gap:0.4rem;">
-            <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminEditRoom(${room.id})" title="Modifier">
-              <i data-lucide="pencil" style="width:12px;height:12px;"></i>
-            </button>
-            <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="toggleRoomPhotos(${room.id})" title="Photos">
-              <i data-lucide="image" style="width:12px;height:12px;"></i>
-            </button>
-            <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteRoom(${room.id}, '${esc(room.name)}')" title="Supprimer">
-              <i data-lucide="trash-2" style="width:12px;height:12px;"></i>
-            </button>
-          </div>
-        </div>
-        <!-- Zone photos (masquée par défaut) -->
-        <div id="photos-${room.id}" style="display:none;padding:0.75rem;border-top:1px solid var(--adm-border);background:var(--adm-surface-2);">
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.4rem;margin-bottom:0.5rem;" id="imgs-${room.id}">
-            ${(room.images||[]).map(img => `
-              <div style="position:relative;aspect-ratio:4/3;overflow:hidden;border:1px solid var(--adm-border);">
-                <img src="/uploads/${esc(img.filename)}" style="width:100%;height:100%;object-fit:cover;">
-                <button onclick="adminDeleteRoomImage(${room.id},${img.id})" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.7);border:none;color:white;width:20px;height:20px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;">✕</button>
-              </div>`).join('')}
-          </div>
-          <label style="display:flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.5rem;border:1px dashed var(--adm-border);cursor:pointer;font-size:0.75rem;color:var(--adm-text-muted);">
-            <i data-lucide="image-plus" style="width:14px;height:14px;"></i> Ajouter une photo
-            <input type="file" accept="image/*" style="display:none;" onchange="adminUploadRoomImg(${room.id},this)">
-          </label>
-
-          ${(room.images||[]).length ? `
-            <p style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--adm-text-dim);margin-top:0.75rem;margin-bottom:0.4rem;">Points interactifs par photo</p>
-            ${(room.images||[]).map(img => `
-              <div style="display:flex;align-items:center;justify-content:space-between;padding:0.3rem 0;border-bottom:1px solid var(--adm-border);">
-                <span style="font-size:0.73rem;color:var(--adm-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;">${esc(img.filename.split('/').pop())}</span>
-                <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="openHotspotModal(${img.id},'${esc(img.filename)}','${esc(room.name)}')">
-                  <i data-lucide="map-pin" style="width:11px;height:11px;color:var(--gold);"></i>
-                  ${(img.hotspots||[]).length ? `${img.hotspots.length} point(s)` : 'Placer des points'}
-                </button>
-              </div>`).join('')}` : ''}
-        </div>
-      </div>`).join('');
-    setTimeout(() => lucide.createIcons(), 60);
-  } catch (err) {
-    list.innerHTML = `<p style="color:#e05555;font-size:0.82rem;">${err.message}</p>`;
-  }
-}
-
-window.toggleRoomPhotos = function(roomId) {
-  const zone = document.getElementById(`photos-${roomId}`);
-  if (zone) { zone.style.display = zone.style.display === 'none' ? 'block' : 'none'; lucide.createIcons(); }
-};
-
-window.openRoomForm = function() {
-  document.getElementById('rf-id').value = '';
-  document.getElementById('rf-name').value = '';
-  document.getElementById('rf-desc').value = '';
-  document.getElementById('rf-order').value = adminRooms.length;
-  document.getElementById('room-form-title').textContent = 'Nouvelle pièce';
-  document.getElementById('room-form-block').style.display = 'block';
-};
-window.closeRoomForm = function() { document.getElementById('room-form-block').style.display = 'none'; };
-
-window.adminEditRoom = function(id) {
-  const room = adminRooms.find(r => r.id === id);
-  if (!room) return;
-  document.getElementById('rf-id').value    = room.id;
-  document.getElementById('rf-name').value  = room.name;
-  document.getElementById('rf-desc').value  = room.description || '';
-  document.getElementById('rf-order').value = room.order_index ?? 0;
-  document.getElementById('room-form-title').textContent = 'Modifier la pièce';
-  document.getElementById('room-form-block').style.display = 'block';
-  document.getElementById('room-form-block').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-};
-
-window.adminSaveRoom = async function() {
-  const id = document.getElementById('rf-id').value;
-  const body = { property_id: PROPERTY_ID, name: document.getElementById('rf-name').value.trim(), description: document.getElementById('rf-desc').value.trim(), order_index: Number(document.getElementById('rf-order').value) };
-  if (!body.name) return toast('Nom requis', 'error');
-  try {
-    if (id) { await apiFetch(`/api/rooms/${id}`, true, 'PUT', body); toast('Pièce mise à jour'); }
-    else     { await apiFetch('/api/rooms', true, 'POST', body); toast('Pièce créée'); }
-    closeRoomForm();
-    await adminLoadRooms();
-    await refreshPage();
-  } catch (err) { toast(err.message, 'error'); }
-};
-
-window.adminDeleteRoom = async function(id, name) {
-  if (!confirm(`Supprimer la pièce "${name}" ?`)) return;
-  try {
-    await apiFetch(`/api/rooms/${id}`, true, 'DELETE');
-    toast('Pièce supprimée');
-    await adminLoadRooms();
-    await refreshPage();
-  } catch (err) { toast(err.message, 'error'); }
-};
-
-window.adminUploadRoomImg = async function(roomId, input) {
-  if (!input.files[0]) return;
-  const fd = new FormData();
-  fd.append('image', input.files[0]);
-  try {
-    toast('Upload…', 'info');
-    await apiFetchForm(`/api/rooms/${roomId}/images`, fd);
-    toast('Photo ajoutée');
-    await adminLoadRooms();
-    await refreshPage();
-  } catch (err) { toast(err.message, 'error'); }
-};
-
-window.adminDeleteRoomImage = async function(roomId, imgId) {
-  if (!confirm('Supprimer cette photo ?')) return;
-  try {
-    await apiFetch(`/api/rooms/${roomId}/images/${imgId}`, true, 'DELETE');
-    toast('Photo supprimée');
-    await adminLoadRooms();
     await refreshPage();
   } catch (err) { toast(err.message, 'error'); }
 };
@@ -845,6 +757,7 @@ window.openEquipForm = function() {
   document.getElementById('ef-id').value = '';
   document.getElementById('ef-name').value = '';
   document.getElementById('ef-icon').value = 'wrench';
+  document.getElementById('ef-category').value = 'equipement';
   document.getElementById('ef-instructions').value = '';
   document.getElementById('ef-tips').value = '';
   document.getElementById('equip-form-title').textContent = 'Nouvel équipement';
@@ -864,6 +777,7 @@ window.adminEditEquip = async function(id) {
   document.getElementById('ef-room-id').value = found.room_id;
   document.getElementById('ef-name').value = found.name;
   document.getElementById('ef-icon').value = found.icon || 'wrench';
+  document.getElementById('ef-category').value = found.category || 'equipement';
   document.getElementById('ef-instructions').value = found.instructions || '';
   document.getElementById('ef-tips').value = found.tips || '';
   document.getElementById('equip-form-title').textContent = 'Modifier l\'équipement';
@@ -873,7 +787,7 @@ window.adminEditEquip = async function(id) {
 
 window.adminSaveEquip = async function() {
   const id = document.getElementById('ef-id').value;
-  const body = { room_id: document.getElementById('ef-room-id').value, name: document.getElementById('ef-name').value.trim(), icon: document.getElementById('ef-icon').value, instructions: document.getElementById('ef-instructions').value.trim(), tips: document.getElementById('ef-tips').value.trim() };
+  const body = { room_id: document.getElementById('ef-room-id').value, name: document.getElementById('ef-name').value.trim(), icon: document.getElementById('ef-icon').value, category: document.getElementById('ef-category').value, instructions: document.getElementById('ef-instructions').value.trim(), tips: document.getElementById('ef-tips').value.trim() };
   if (!body.name) return toast('Nom requis', 'error');
   try {
     if (id) { await apiFetch(`/api/equipment/${id}`, true, 'PUT', body); toast('Équipement mis à jour'); }
@@ -900,8 +814,6 @@ async function adminLoadRules() {
     const r = await apiFetch(`/api/rules/${PROPERTY_ID}`, false);
     document.getElementById('dr-checkin-time').value  = r.check_in_time || '15:00';
     document.getElementById('dr-checkout-time').value = r.check_out_time || '11:00';
-    document.getElementById('dr-checkin-inst').value  = r.check_in_instructions || '';
-    document.getElementById('dr-checkout-inst').value = r.check_out_instructions || '';
     document.getElementById('dr-wifi-name').value     = r.wifi_name || '';
     document.getElementById('dr-wifi-pass').value     = r.wifi_password || '';
     document.getElementById('dr-trash').value         = r.trash_instructions || '';
@@ -909,74 +821,107 @@ async function adminLoadRules() {
     document.getElementById('dr-parking').value       = r.parking_instructions || '';
     document.getElementById('dr-places').value        = r.places_to_discover || '';
   } catch {}
+  await adminLoadCheckinItems();
 }
 
 window.adminSaveRules = async function(e) {
   e.preventDefault();
   try {
     await apiFetch(`/api/rules/${PROPERTY_ID}`, true, 'PUT', {
-      check_in_time:          document.getElementById('dr-checkin-time').value,
-      check_out_time:         document.getElementById('dr-checkout-time').value,
-      check_in_instructions:  document.getElementById('dr-checkin-inst').value,
-      check_out_instructions: document.getElementById('dr-checkout-inst').value,
-      wifi_name:              document.getElementById('dr-wifi-name').value,
-      wifi_password:          document.getElementById('dr-wifi-pass').value,
-      trash_instructions:     document.getElementById('dr-trash').value,
-      house_rules:            document.getElementById('dr-house-rules').value,
-      parking_instructions:   document.getElementById('dr-parking').value,
-      places_to_discover:     document.getElementById('dr-places').value,
+      check_in_time:        document.getElementById('dr-checkin-time').value,
+      check_out_time:       document.getElementById('dr-checkout-time').value,
+      wifi_name:            document.getElementById('dr-wifi-name').value,
+      wifi_password:        document.getElementById('dr-wifi-pass').value,
+      trash_instructions:   document.getElementById('dr-trash').value,
+      house_rules:          document.getElementById('dr-house-rules').value,
+      parking_instructions: document.getElementById('dr-parking').value,
+      places_to_discover:   document.getElementById('dr-places').value,
     });
     toast('Contenu enregistré');
     await refreshPage();
   } catch (err) { toast(err.message, 'error'); }
 };
 
-// ── FAQ admin ──
-async function adminLoadFaq() {
-  const listEl = document.getElementById('faq-admin-list');
+// ── Points check-in / check-out ──
+async function adminLoadCheckinItems() {
   try {
-    const items = await apiFetch(`/api/faq/${PROPERTY_ID}`, false);
-    if (!items.length) {
-      listEl.innerHTML = '<p style="color:var(--adm-text-muted);font-size:0.82rem;">Aucune question. Ajoutez-en ci-dessous.</p>';
-      return;
-    }
-    listEl.innerHTML = items.map(q => `
-      <div style="padding:0.6rem;background:var(--adm-surface-2);border:1px solid var(--adm-border);border-radius:3px;">
-        <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem;">
-          <p style="font-size:0.82rem;font-weight:500;flex:1;">${esc(q.question)}</p>
-          <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteFaq(${q.id})" title="Supprimer">
-            <i data-lucide="trash-2" style="width:11px;height:11px;"></i>
-          </button>
-        </div>
-        <p style="font-size:0.75rem;color:var(--adm-text-muted);margin-top:0.25rem;">${esc(q.answer)}</p>
-      </div>`).join('');
-    setTimeout(() => lucide.createIcons(), 60);
-  } catch (err) { listEl.innerHTML = `<p style="color:#e05555;font-size:0.82rem;">${err.message}</p>`; }
+    const items = await apiFetch(`/api/checkin-items/${PROPERTY_ID}`, false);
+    renderCheckinAdminList(items.filter(i => i.type === 'checkin'), 'ci-checkin-list', 'checkin');
+    renderCheckinAdminList(items.filter(i => i.type === 'checkout'), 'ci-checkout-list', 'checkout');
+  } catch {}
 }
 
-window.adminAddFaq = async function() {
-  const q = document.getElementById('faq-q').value.trim();
-  const a = document.getElementById('faq-a').value.trim();
-  if (!q || !a) { toast('Question et réponse requises', 'error'); return; }
-  try {
-    await apiFetch(`/api/faq/${PROPERTY_ID}`, true, 'POST', { question: q, answer: a });
-    document.getElementById('faq-q').value = '';
-    document.getElementById('faq-a').value = '';
-    toast('Question ajoutée ✓');
-    await adminLoadFaq();
-    await refreshPage();
-  } catch (err) { toast(err.message, 'error'); }
+function renderCheckinAdminList(items, containerId, type) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!items.length) { el.innerHTML = '<p style="font-size:0.75rem;color:var(--adm-text-dim,#555560);">Aucun point ajouté.</p>'; return; }
+  el.innerHTML = items.map(it => `
+    <div style="display:flex;align-items:center;gap:0.4rem;padding:0.45rem 0.6rem;background:var(--adm-surface-2,#1a1a1e);border:1px solid var(--adm-border,#2a2a30);">
+      <i data-lucide="${esc(it.icon||'check')}" style="width:12px;height:12px;color:var(--gold,#c9a96e);flex-shrink:0;"></i>
+      <span style="flex:1;font-size:0.78rem;color:var(--adm-text,#f0f0f0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(it.title)}</span>
+      <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="editCheckinItem(${it.id},'${type}')" title="Modifier">
+        <i data-lucide="pencil" style="width:11px;height:11px;"></i>
+      </button>
+      <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="deleteCheckinItem(${it.id})" title="Supprimer">
+        <i data-lucide="x" style="width:11px;height:11px;"></i>
+      </button>
+    </div>`).join('');
+  setTimeout(() => lucide.createIcons(), 60);
+}
+
+window.openCheckinItemForm = function(type) {
+  document.getElementById(`ci-${type}-id`).value = '';
+  document.getElementById(`ci-${type}-title`).value = '';
+  document.getElementById(`ci-${type}-icon`).value = 'check';
+  document.getElementById(`ci-${type}-desc`).value = '';
+  document.getElementById(`ci-${type}-form`).style.display = 'block';
+  document.getElementById(`ci-${type}-title`).focus();
 };
 
-window.adminDeleteFaq = async function(id) {
-  if (!confirm('Supprimer cette question ?')) return;
-  try {
-    await apiFetch(`/api/faq/${id}`, true, 'DELETE');
-    toast('Question supprimée');
-    await adminLoadFaq();
-    await refreshPage();
-  } catch (err) { toast(err.message, 'error'); }
+window.closeCheckinItemForm = function(type) {
+  document.getElementById(`ci-${type}-form`).style.display = 'none';
 };
+
+window.editCheckinItem = async function(id, type) {
+  try {
+    const items = await apiFetch(`/api/checkin-items/${PROPERTY_ID}`, false);
+    const it = items.find(i => i.id === id);
+    if (!it) return;
+    document.getElementById(`ci-${type}-id`).value    = it.id;
+    document.getElementById(`ci-${type}-title`).value = it.title;
+    document.getElementById(`ci-${type}-icon`).value  = it.icon || 'check';
+    document.getElementById(`ci-${type}-desc`).value  = it.description || '';
+    document.getElementById(`ci-${type}-form`).style.display = 'block';
+    document.getElementById(`ci-${type}-title`).focus();
+  } catch(err) { toast(err.message, 'error'); }
+};
+
+window.saveCheckinItem = async function(type) {
+  const id    = document.getElementById(`ci-${type}-id`).value;
+  const title = document.getElementById(`ci-${type}-title`).value.trim();
+  const icon  = document.getElementById(`ci-${type}-icon`).value;
+  const desc  = document.getElementById(`ci-${type}-desc`).value.trim();
+  if (!title) { toast('Le titre est requis', 'error'); return; }
+  try {
+    if (id) {
+      await apiFetch(`/api/checkin-items/${id}`, true, 'PUT', { title, icon, description: desc });
+    } else {
+      await apiFetch('/api/checkin-items', true, 'POST', { property_id: PROPERTY_ID, type, title, icon, description: desc });
+    }
+    closeCheckinItemForm(type);
+    await adminLoadCheckinItems();
+    await refreshPage();
+  } catch(err) { toast(err.message, 'error'); }
+};
+
+window.deleteCheckinItem = async function(id) {
+  try {
+    await apiFetch(`/api/checkin-items/${id}`, true, 'DELETE');
+    await adminLoadCheckinItems();
+    await refreshPage();
+  } catch(err) { toast(err.message, 'error'); }
+};
+
 
 // ── Réservation ──
 async function adminLoadBooking() {

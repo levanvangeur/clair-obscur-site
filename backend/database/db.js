@@ -109,11 +109,30 @@ function initDatabase() {
       FOREIGN KEY (equipment_id)  REFERENCES equipment(id)   ON DELETE SET NULL
     );
 
+    CREATE TABLE IF NOT EXISTS property_gallery (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id  INTEGER NOT NULL,
+      filename     TEXT NOT NULL,
+      order_index  INTEGER DEFAULT 0,
+      FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+    );
+
     CREATE TABLE IF NOT EXISTS faq (
       id           INTEGER PRIMARY KEY AUTOINCREMENT,
       property_id  INTEGER NOT NULL,
       question     TEXT NOT NULL,
       answer       TEXT NOT NULL,
+      order_index  INTEGER DEFAULT 0,
+      FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+    );
+
+    CREATE TABLE IF NOT EXISTS checkin_items (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id  INTEGER NOT NULL,
+      type         TEXT NOT NULL DEFAULT 'checkin',
+      icon         TEXT DEFAULT 'check',
+      title        TEXT NOT NULL,
+      description  TEXT,
       order_index  INTEGER DEFAULT 0,
       FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
     );
@@ -123,6 +142,7 @@ function initDatabase() {
   try { db.exec('ALTER TABLE photo_hotspots ADD COLUMN target_image_id INTEGER REFERENCES room_images(id) ON DELETE SET NULL'); } catch(_) {}
   try { db.exec('ALTER TABLE photo_hotspots ADD COLUMN icon_override TEXT'); } catch(_) {}
   try { db.exec('ALTER TABLE equipment ADD COLUMN order_index INTEGER DEFAULT 0'); } catch(_) {}
+  try { db.exec("ALTER TABLE equipment ADD COLUMN category TEXT DEFAULT 'equipement'"); } catch(_) {}
   db.exec('UPDATE equipment SET order_index = id WHERE order_index = 0');
   try { db.exec('ALTER TABLE rules ADD COLUMN parking_instructions TEXT'); } catch(_) {}
   try { db.exec('ALTER TABLE rules ADD COLUMN places_to_discover TEXT'); } catch(_) {}

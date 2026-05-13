@@ -19,9 +19,15 @@
 <!-- ══ NAVIGATION ═══════════════════════════════════════════ -->
 <nav id="navbar">
   <a href="#hero" class="nav-logo" id="nav-logo">Clair-Obscur</a>
-  <button id="admin-nav-btn" onclick="handleAdminTrigger()" title="Administration" aria-label="Administration">
-    <i data-lucide="settings-2" style="width:18px;height:18px;"></i>
-  </button>
+  <div style="display:flex;align-items:center;gap:0.75rem;">
+    <a href="/listing.html" class="btn-primary nav-book-btn" id="hero-cta">
+      <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
+      Réserver votre prochain séjour
+    </a>
+    <button id="admin-nav-btn" onclick="handleAdminTrigger()" title="Administration" aria-label="Administration">
+      <i data-lucide="settings-2" style="width:18px;height:18px;"></i>
+    </button>
+  </div>
 </nav>
 
 <!-- ══ HERO ══════════════════════════════════════════════════ -->
@@ -29,15 +35,9 @@
   <div id="hero-bg"></div>
   <div id="hero-overlay"></div>
   <div id="hero-content">
-    <p class="text-eyebrow hero-eyebrow" id="hero-eyebrow">Location courte durée · Réservation directe</p>
-    <h1 class="text-hero hero-title" id="hero-title">Clair<br>Obscur</h1>
+    <p class="text-eyebrow hero-eyebrow" id="hero-eyebrow">Bienvenue au</p>
+    <h1 class="text-hero hero-title" id="hero-title">Clair-Obscur</h1>
     <p class="hero-tagline" id="hero-tagline">Un havre de paix au cœur de la ville</p>
-    <div class="hero-cta-group">
-      <a href="#reservation" class="btn-primary" id="hero-cta">
-        <i data-lucide="calendar-check" style="width:16px;height:16px;"></i>
-        Réserver maintenant
-      </a>
-    </div>
   </div>
   <div class="scroll-indicator">
     <span>Découvrir</span>
@@ -45,41 +45,28 @@
   </div>
 </section>
 
-<!-- ══ RÉSERVER EN DIRECT ════════════════════════════════════ -->
-<section id="reservation" style="background:var(--surface);border-top:1px solid var(--border);">
+<!-- ══ ARRIVÉE + DÉPART ═══════════════════════════════════════ -->
+<section id="arrivee-depart" style="background:var(--bg);border-top:1px solid var(--border);">
   <div class="section">
-    <div class="section-header reveal">
-      <p class="text-eyebrow">Réservation directe</p>
-      <span class="divider-line"></span>
-      <h2 class="text-section-title">Réserver en direct<br><em>sans frais de service</em></h2>
+    <div class="arrivee-depart-grid">
+      <div id="arrivee">
+        <div class="section-header reveal">
+          <p class="text-eyebrow">Check-in</p>
+          <span class="divider-line"></span>
+          <h2 class="text-section-title">Arrivée</h2>
+        </div>
+        <div id="arrivee-container"></div>
+      </div>
+      <div class="arrivee-depart-sep"></div>
+      <div id="depart">
+        <div class="section-header reveal">
+          <p class="text-eyebrow">Check-out</p>
+          <span class="divider-line"></span>
+          <h2 class="text-section-title">Départ</h2>
+        </div>
+        <div id="depart-container"></div>
+      </div>
     </div>
-    <div id="booking-container">
-      <div class="skeleton" style="height:260px;"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ ARRIVÉE ═══════════════════════════════════════════════ -->
-<section id="arrivee" style="background:var(--bg);border-top:1px solid var(--border);">
-  <div class="section">
-    <div class="section-header reveal">
-      <p class="text-eyebrow">Check-in</p>
-      <span class="divider-line"></span>
-      <h2 class="text-section-title">Arrivée</h2>
-    </div>
-    <div id="arrivee-container"></div>
-  </div>
-</section>
-
-<!-- ══ DÉPART ════════════════════════════════════════════════ -->
-<section id="depart" style="background:var(--surface);border-top:1px solid var(--border);">
-  <div class="section">
-    <div class="section-header reveal">
-      <p class="text-eyebrow">Check-out</p>
-      <span class="divider-line"></span>
-      <h2 class="text-section-title">Départ</h2>
-    </div>
-    <div id="depart-container"></div>
   </div>
 </section>
 
@@ -101,11 +88,26 @@
     <div class="section-header reveal">
       <p class="text-eyebrow">Guide interactif</p>
       <span class="divider-line"></span>
-      <h2 class="text-section-title">Équipements<br><em>et mode d'emploi</em></h2>
+      <h2 class="text-section-title">Équipements</h2>
       <p style="color:var(--text-muted);margin-top:1rem;font-size:0.9rem;">Cliquez sur un équipement pour les instructions.</p>
     </div>
     <div id="equip-container" class="guide-accordion">
       <div class="skeleton" style="height:200px;border-radius:2px;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONFORT ════════════════════════════════════════════════ -->
+<section id="confort" style="background:var(--bg);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Espaces & prestations</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Confort</h2>
+      <p style="color:var(--text-muted);margin-top:1rem;font-size:0.9rem;">Cliquez sur un élément pour en savoir plus.</p>
+    </div>
+    <div id="confort-container" class="guide-accordion">
+      <div class="skeleton" style="height:160px;border-radius:2px;"></div>
     </div>
   </div>
 </section>
@@ -158,16 +160,17 @@
   </div>
 </section>
 
-<!-- ══ FAQ ════════════════════════════════════════════════════ -->
-<section id="faq" style="background:var(--bg);border-top:1px solid var(--border);">
+
+<!-- ══ RÉSERVER EN DIRECT ════════════════════════════════════ -->
+<section id="reservation" style="background:var(--bg);border-top:1px solid var(--border);">
   <div class="section">
     <div class="section-header reveal">
-      <p class="text-eyebrow">Questions fréquentes</p>
+      <p class="text-eyebrow">Réservation directe</p>
       <span class="divider-line"></span>
-      <h2 class="text-section-title">FAQ</h2>
+      <h2 class="text-section-title">Réserver en direct<br><em>sans frais de service</em></h2>
     </div>
-    <div id="faq-container" class="guide-accordion">
-      <div class="skeleton" style="height:120px;border-radius:2px;"></div>
+    <div id="booking-container">
+      <div class="skeleton" style="height:260px;"></div>
     </div>
   </div>
 </section>
@@ -267,10 +270,8 @@
 
   <div class="drawer-tabs" id="drawer-tabs">
     <button class="drw-tab active" data-tab="info"     onclick="switchDrawerTab('info')">Logement</button>
-    <button class="drw-tab"        data-tab="rooms"    onclick="switchDrawerTab('rooms')">Pièces</button>
     <button class="drw-tab"        data-tab="equip"    onclick="switchDrawerTab('equip')">Équipements</button>
     <button class="drw-tab"        data-tab="rules"    onclick="switchDrawerTab('rules')">Contenu</button>
-    <button class="drw-tab"        data-tab="faq"      onclick="switchDrawerTab('faq')">FAQ</button>
     <button class="drw-tab"        data-tab="booking"  onclick="switchDrawerTab('booking')">Réservation</button>
     <button class="drw-tab"        data-tab="settings" onclick="switchDrawerTab('settings')">Paramètres</button>
   </div>
@@ -311,28 +312,14 @@
         <p style="font-size:0.82rem;color:var(--adm-text-muted);">Cliquez ou glissez une image<br><small>JPG, PNG, WebP · Max 20 Mo</small></p>
       </div>
       <div id="dp-img-preview" style="margin-top:0.75rem;"></div>
-    </div>
 
-    <!-- ── Pièces ── -->
-    <div class="drw-panel" id="drw-rooms">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-        <p style="font-size:0.82rem;color:var(--adm-text-muted);">Gérez les pièces et leurs photos</p>
-        <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="openRoomForm()">
-          <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
-        </button>
-      </div>
-      <div id="room-form-block" style="display:none;background:var(--adm-surface-2);padding:1rem;margin-bottom:1rem;border:1px solid var(--adm-border);">
-        <p class="adm-label" style="margin-bottom:0.75rem;" id="room-form-title">Nouvelle pièce</p>
-        <input type="hidden" id="rf-id">
-        <div class="adm-form-group"><label class="adm-label">Nom</label><input type="text" class="adm-input" id="rf-name" placeholder="Salon"></div>
-        <div class="adm-form-group"><label class="adm-label">Description</label><textarea class="adm-input" id="rf-desc" rows="2" placeholder="Description…"></textarea></div>
-        <div class="adm-form-group"><label class="adm-label">Ordre</label><input type="number" class="adm-input" id="rf-order" value="0" min="0"></div>
-        <div style="display:flex;gap:0.5rem;">
-          <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="adminSaveRoom()"><i data-lucide="save" style="width:12px;height:12px;"></i> Sauvegarder</button>
-          <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeRoomForm()">Annuler</button>
-        </div>
-      </div>
-      <div id="drw-rooms-list"><p style="color:var(--adm-text-muted);font-size:0.82rem;">Chargement…</p></div>
+      <div class="adm-separator"></div>
+      <p class="adm-label" style="margin-bottom:0.75rem;">Photos de présentation <small style="color:var(--adm-text-dim);font-weight:300;">(page listing)</small></p>
+      <div id="dp-gallery-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.4rem;margin-bottom:0.5rem;"></div>
+      <label style="display:flex;align-items:center;justify-content:center;gap:0.4rem;padding:0.5rem;border:1px dashed var(--adm-border);cursor:pointer;font-size:0.75rem;color:var(--adm-text-muted);">
+        <i data-lucide="image-plus" style="width:14px;height:14px;"></i> Ajouter une photo
+        <input type="file" accept="image/*" style="display:none;" onchange="adminUploadGalleryImg(this)">
+      </label>
     </div>
 
     <!-- ── Équipements ── -->
@@ -382,6 +369,13 @@
             </select>
           </div>
         </div>
+        <div class="adm-form-group">
+          <label class="adm-label">Catégorie</label>
+          <select class="adm-input" id="ef-category">
+            <option value="equipement">Équipements</option>
+            <option value="confort">Confort</option>
+          </select>
+        </div>
         <div class="adm-form-group"><label class="adm-label">Instructions</label><textarea class="adm-input" id="ef-instructions" rows="3" placeholder="Comment utiliser…"></textarea></div>
         <div class="adm-form-group"><label class="adm-label">Astuce</label><input type="text" class="adm-input" id="ef-tips" placeholder="Conseil pratique…"></div>
         <div style="display:flex;gap:0.5rem;">
@@ -396,15 +390,79 @@
     <div class="drw-panel" id="drw-rules">
       <form onsubmit="adminSaveRules(event)">
         <p class="adm-section-title">Arrivée</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-          <div class="adm-form-group"><label class="adm-label">Heure check-in</label><input type="time" class="adm-input" id="dr-checkin-time"></div>
-          <div class="adm-form-group"><label class="adm-label">Heure check-out</label><input type="time" class="adm-input" id="dr-checkout-time"></div>
+        <div class="adm-form-group"><label class="adm-label">Heure check-in</label><input type="time" class="adm-input" id="dr-checkin-time"></div>
+
+        <!-- Points arrivée -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+          <span class="adm-label" style="margin:0;">Points d'information</span>
+          <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm" onclick="openCheckinItemForm('checkin')">
+            <i data-lucide="plus" style="width:12px;height:12px;"></i> Ajouter
+          </button>
         </div>
-        <div class="adm-form-group"><label class="adm-label">Instructions arrivée</label><textarea class="adm-input" id="dr-checkin-inst" rows="3" placeholder="Code boîte à clés…"></textarea></div>
+        <div id="ci-checkin-list" style="margin-bottom:0.75rem;display:flex;flex-direction:column;gap:0.3rem;"></div>
+        <div id="ci-checkin-form" style="display:none;background:var(--adm-surface-2,#1a1a1e);padding:0.75rem;margin-bottom:0.75rem;border:1px solid var(--adm-border,#2a2a30);">
+          <input type="hidden" id="ci-checkin-id">
+          <div style="display:grid;grid-template-columns:1fr auto;gap:0.4rem;margin-bottom:0.4rem;">
+            <input type="text" class="adm-input" id="ci-checkin-title" placeholder="Titre du point…">
+            <select class="adm-input" id="ci-checkin-icon" style="width:auto;">
+              <option value="check">✔ Valider</option>
+              <option value="key">🔑 Clé</option>
+              <option value="lock">🔒 Cadenas</option>
+              <option value="map-pin">📍 Lieu</option>
+              <option value="clock">🕐 Horaire</option>
+              <option value="info">ℹ Info</option>
+              <option value="car">🚗 Voiture</option>
+              <option value="phone">📞 Téléphone</option>
+              <option value="mail">✉ Email</option>
+              <option value="trash-2">🗑 Poubelle</option>
+              <option value="wifi">📶 Wifi</option>
+              <option value="star">⭐ Important</option>
+            </select>
+          </div>
+          <textarea class="adm-input" id="ci-checkin-desc" rows="2" placeholder="Description (optionnel)…" style="margin-bottom:0.4rem;"></textarea>
+          <div style="display:flex;gap:0.4rem;">
+            <button type="button" class="adm-btn adm-btn-gold adm-btn-sm" onclick="saveCheckinItem('checkin')"><i data-lucide="save" style="width:11px;height:11px;"></i> OK</button>
+            <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeCheckinItemForm('checkin')">Annuler</button>
+          </div>
+        </div>
 
         <div class="adm-separator"></div>
         <p class="adm-section-title">Départ</p>
-        <div class="adm-form-group"><label class="adm-label">Instructions départ</label><textarea class="adm-input" id="dr-checkout-inst" rows="3" placeholder="Déposer les clés…"></textarea></div>
+        <div class="adm-form-group"><label class="adm-label">Heure check-out</label><input type="time" class="adm-input" id="dr-checkout-time"></div>
+
+        <!-- Points départ -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+          <span class="adm-label" style="margin:0;">Points d'information</span>
+          <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm" onclick="openCheckinItemForm('checkout')">
+            <i data-lucide="plus" style="width:12px;height:12px;"></i> Ajouter
+          </button>
+        </div>
+        <div id="ci-checkout-list" style="margin-bottom:0.75rem;display:flex;flex-direction:column;gap:0.3rem;"></div>
+        <div id="ci-checkout-form" style="display:none;background:var(--adm-surface-2,#1a1a1e);padding:0.75rem;margin-bottom:0.75rem;border:1px solid var(--adm-border,#2a2a30);">
+          <input type="hidden" id="ci-checkout-id">
+          <div style="display:grid;grid-template-columns:1fr auto;gap:0.4rem;margin-bottom:0.4rem;">
+            <input type="text" class="adm-input" id="ci-checkout-title" placeholder="Titre du point…">
+            <select class="adm-input" id="ci-checkout-icon" style="width:auto;">
+              <option value="check">✔ Valider</option>
+              <option value="key">🔑 Clé</option>
+              <option value="lock">🔒 Cadenas</option>
+              <option value="map-pin">📍 Lieu</option>
+              <option value="clock">🕐 Horaire</option>
+              <option value="info">ℹ Info</option>
+              <option value="car">🚗 Voiture</option>
+              <option value="phone">📞 Téléphone</option>
+              <option value="mail">✉ Email</option>
+              <option value="trash-2">🗑 Poubelle</option>
+              <option value="wifi">📶 Wifi</option>
+              <option value="star">⭐ Important</option>
+            </select>
+          </div>
+          <textarea class="adm-input" id="ci-checkout-desc" rows="2" placeholder="Description (optionnel)…" style="margin-bottom:0.4rem;"></textarea>
+          <div style="display:flex;gap:0.4rem;">
+            <button type="button" class="adm-btn adm-btn-gold adm-btn-sm" onclick="saveCheckinItem('checkout')"><i data-lucide="save" style="width:11px;height:11px;"></i> OK</button>
+            <button type="button" class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeCheckinItemForm('checkout')">Annuler</button>
+          </div>
+        </div>
 
         <div class="adm-separator"></div>
         <p class="adm-section-title">Wi-Fi</p>
@@ -432,17 +490,6 @@
       </form>
     </div>
 
-    <!-- ── FAQ ── -->
-    <div class="drw-panel" id="drw-faq">
-      <div id="faq-admin-list" style="margin-bottom:1rem;display:flex;flex-direction:column;gap:0.5rem;"></div>
-      <div class="adm-separator"></div>
-      <p class="adm-section-title" style="margin-bottom:0.75rem;">Ajouter une question</p>
-      <div class="adm-form-group"><label class="adm-label">Question</label><input type="text" class="adm-input" id="faq-q" placeholder="À quelle heure puis-je arriver ?"></div>
-      <div class="adm-form-group"><label class="adm-label">Réponse</label><textarea class="adm-input" id="faq-a" rows="3" placeholder="Réponse détaillée…"></textarea></div>
-      <button class="adm-btn adm-btn-gold" style="width:100%;justify-content:center;" onclick="adminAddFaq()">
-        <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
-      </button>
-    </div>
 
     <!-- ── Réservation ── -->
     <div class="drw-panel" id="drw-booking">

@@ -91,25 +91,22 @@ router.put('/:propertyId', authenticateAdmin, (req, res) => {
   if (existing) {
     run(db, `UPDATE rules SET
       check_in_time = ?, check_out_time = ?,
-      check_in_instructions = ?, check_out_instructions = ?,
       trash_instructions = ?, wifi_name = ?, wifi_password = ?, house_rules = ?,
       parking_instructions = ?, places_to_discover = ?
       WHERE property_id = ?`,
-      check_in_time, check_out_time,
-      check_in_instructions, check_out_instructions,
-      trash_instructions, wifi_name, wifi_password, house_rules,
+      check_in_time || '15:00', check_out_time || '11:00',
+      trash_instructions || '', wifi_name || '', wifi_password || '', house_rules || '',
       parking_instructions || '', places_to_discover || '',
       req.params.propertyId
     );
   } else {
     run(db, `INSERT INTO rules
-      (property_id, check_in_time, check_out_time, check_in_instructions, check_out_instructions,
+      (property_id, check_in_time, check_out_time,
        trash_instructions, wifi_name, wifi_password, house_rules, parking_instructions, places_to_discover)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       req.params.propertyId,
-      check_in_time, check_out_time,
-      check_in_instructions, check_out_instructions,
-      trash_instructions, wifi_name, wifi_password, house_rules,
+      check_in_time || '15:00', check_out_time || '11:00',
+      trash_instructions || '', wifi_name || '', wifi_password || '', house_rules || '',
       parking_instructions || '', places_to_discover || ''
     );
   }

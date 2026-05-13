@@ -13,7 +13,7 @@ router.get('/:roomId', (req, res) => {
 
 // POST /api/equipment
 router.post('/', authenticateAdmin, (req, res) => {
-  const { room_id, name, icon, instructions, tips } = req.body;
+  const { room_id, name, icon, instructions, tips, category } = req.body;
   if (!room_id || !name) return res.status(400).json({ error: 'room_id et name requis' });
 
   const db = getDb();
@@ -21,10 +21,10 @@ router.post('/', authenticateAdmin, (req, res) => {
   const nextOrder = maxRow.m + 1;
 
   const result = run(db,
-    'INSERT INTO equipment (room_id, name, icon, instructions, tips, order_index) VALUES (?, ?, ?, ?, ?, ?)',
-    room_id, name, icon || 'tool', instructions || '', tips || '', nextOrder);
+    'INSERT INTO equipment (room_id, name, icon, instructions, tips, order_index, category) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    room_id, name, icon || 'tool', instructions || '', tips || '', nextOrder, category || 'equipement');
 
-  res.status(201).json({ id: result.lastInsertRowid, room_id, name, icon, instructions, tips });
+  res.status(201).json({ id: result.lastInsertRowid, room_id, name, icon, instructions, tips, category });
 });
 
 // PUT /api/equipment/:id/order — met à jour uniquement l'ordre
@@ -38,10 +38,10 @@ router.put('/:id/order', authenticateAdmin, (req, res) => {
 
 // PUT /api/equipment/:id
 router.put('/:id', authenticateAdmin, (req, res) => {
-  const { name, icon, instructions, tips } = req.body;
+  const { name, icon, instructions, tips, category } = req.body;
   const db = getDb();
-  run(db, 'UPDATE equipment SET name = ?, icon = ?, instructions = ?, tips = ? WHERE id = ?',
-    name, icon || 'tool', instructions, tips, req.params.id);
+  run(db, 'UPDATE equipment SET name = ?, icon = ?, instructions = ?, tips = ?, category = ? WHERE id = ?',
+    name, icon || 'tool', instructions, tips, category || 'equipement', req.params.id);
   res.json({ message: 'Équipement mis à jour' });
 });
 

@@ -220,6 +220,16 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   box-shadow: 0 12px 40px rgba(201,169,110,0.3);
 }
 
+.nav-book-btn {
+  padding: 0.5rem 1.1rem;
+  font-size: 0.65rem;
+}
+
+@media (max-width: 560px) {
+  .nav-book-btn span { display: none; }
+  .nav-book-btn { padding: 0.5rem 0.75rem; }
+}
+
 .btn-outline {
   display: inline-flex;
   align-items: center;
@@ -901,6 +911,85 @@ footer p { font-size: 0.78rem; color: var(--text-dim); }
 /* ══════════════════════════════════════════════════════════
    SECTIONS DE DÉFILEMENT
 ══════════════════════════════════════════════════════════ */
+
+/* ── Arrivée + Départ côte à côte ──────────────────────── */
+.arrivee-depart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  gap: 0 4rem;
+}
+
+.arrivee-depart-sep {
+  background: var(--border);
+  align-self: stretch;
+}
+
+@media (max-width: 768px) {
+  .arrivee-depart-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .arrivee-depart-sep {
+    height: 1px;
+    width: auto;
+    margin: 2rem 0;
+  }
+}
+
+/* ── Check-in / Check-out étapes ───────────────────────── */
+.checkin-time {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 2rem;
+}
+
+.checkin-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.checkin-step {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  align-items: start;
+}
+
+.checkin-step:last-child { border-bottom: none; }
+
+.checkin-step-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold);
+  flex-shrink: 0;
+}
+
+.checkin-step-body { padding-top: 0.4rem; }
+
+.checkin-step-title {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+
+.checkin-step-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+}
 
 /* Carte info générique (arrivée, départ, stationnement, etc.) */
 .info-card {
