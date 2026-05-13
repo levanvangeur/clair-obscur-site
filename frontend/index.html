@@ -391,66 +391,28 @@
 
       <!-- ARRIVÉE -->
       <p class="adm-section-title">Arrivée</p>
-      <div class="adm-form-group"><label class="adm-label">Heure check-in</label><input type="time" class="adm-input" id="dr-checkin-time"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <span class="adm-label" style="margin:0;">Points d'information</span>
-        <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="openCheckinItemForm('checkin')">
-          <i data-lucide="plus" style="width:12px;height:12px;"></i> Ajouter
-        </button>
+      <div class="adm-form-group">
+        <label class="adm-label">Heure check-in</label>
+        <input type="time" class="adm-input" id="dr-checkin-time">
       </div>
-      <div id="ci-checkin-list" style="margin-bottom:0.5rem;display:flex;flex-direction:column;gap:0.3rem;"></div>
-      <div id="ci-checkin-form" style="display:none;background:var(--adm-surface-2);padding:0.75rem;margin-bottom:0.75rem;border:1px solid var(--adm-border);">
-        <input type="hidden" id="ci-checkin-id">
-        <div style="display:grid;grid-template-columns:1fr auto;gap:0.4rem;margin-bottom:0.4rem;">
-          <input type="text" class="adm-input" id="ci-checkin-title" placeholder="Titre du point…"
-                 onkeydown="if(event.key==='Enter'){event.preventDefault();saveCheckinItem('checkin');}">
-          <select class="adm-input" id="ci-checkin-icon" style="width:auto;">
-            <option value="check">✔ Valider</option><option value="key">🔑 Clé</option>
-            <option value="lock">🔒 Cadenas</option><option value="map-pin">📍 Lieu</option>
-            <option value="clock">🕐 Horaire</option><option value="info">ℹ Info</option>
-            <option value="car">🚗 Voiture</option><option value="phone">📞 Téléphone</option>
-            <option value="mail">✉ Email</option><option value="trash-2">🗑 Poubelle</option>
-            <option value="wifi">📶 Wifi</option><option value="star">⭐ Important</option>
-          </select>
-        </div>
-        <textarea class="adm-input" id="ci-checkin-desc" rows="2" placeholder="Description (optionnel)…" style="margin-bottom:0.4rem;"></textarea>
-        <div style="display:flex;gap:0.4rem;">
-          <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="saveCheckinItem('checkin')"><i data-lucide="save" style="width:11px;height:11px;"></i> OK</button>
-          <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeCheckinItemForm('checkin')">Annuler</button>
-        </div>
+      <div class="adm-form-group">
+        <label class="adm-label">Instructions <span style="font-weight:400;color:var(--adm-text-dim,#666);">— une ligne = une étape</span></label>
+        <textarea class="adm-input" id="dr-checkin-inst" rows="5"
+          placeholder="Récupérer les clés dans la boîte (code 1234)&#10;Entrer par l'ascenseur, 3e étage&#10;Profiter du séjour !"></textarea>
       </div>
 
       <div class="adm-separator"></div>
 
       <!-- DÉPART -->
       <p class="adm-section-title">Départ</p>
-      <div class="adm-form-group"><label class="adm-label">Heure check-out</label><input type="time" class="adm-input" id="dr-checkout-time"></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
-        <span class="adm-label" style="margin:0;">Points d'information</span>
-        <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="openCheckinItemForm('checkout')">
-          <i data-lucide="plus" style="width:12px;height:12px;"></i> Ajouter
-        </button>
+      <div class="adm-form-group">
+        <label class="adm-label">Heure check-out</label>
+        <input type="time" class="adm-input" id="dr-checkout-time">
       </div>
-      <div id="ci-checkout-list" style="margin-bottom:0.5rem;display:flex;flex-direction:column;gap:0.3rem;"></div>
-      <div id="ci-checkout-form" style="display:none;background:var(--adm-surface-2);padding:0.75rem;margin-bottom:0.75rem;border:1px solid var(--adm-border);">
-        <input type="hidden" id="ci-checkout-id">
-        <div style="display:grid;grid-template-columns:1fr auto;gap:0.4rem;margin-bottom:0.4rem;">
-          <input type="text" class="adm-input" id="ci-checkout-title" placeholder="Titre du point…"
-                 onkeydown="if(event.key==='Enter'){event.preventDefault();saveCheckinItem('checkout');}">
-          <select class="adm-input" id="ci-checkout-icon" style="width:auto;">
-            <option value="check">✔ Valider</option><option value="key">🔑 Clé</option>
-            <option value="lock">🔒 Cadenas</option><option value="map-pin">📍 Lieu</option>
-            <option value="clock">🕐 Horaire</option><option value="info">ℹ Info</option>
-            <option value="car">🚗 Voiture</option><option value="phone">📞 Téléphone</option>
-            <option value="mail">✉ Email</option><option value="trash-2">🗑 Poubelle</option>
-            <option value="wifi">📶 Wifi</option><option value="star">⭐ Important</option>
-          </select>
-        </div>
-        <textarea class="adm-input" id="ci-checkout-desc" rows="2" placeholder="Description (optionnel)…" style="margin-bottom:0.4rem;"></textarea>
-        <div style="display:flex;gap:0.4rem;">
-          <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="saveCheckinItem('checkout')"><i data-lucide="save" style="width:11px;height:11px;"></i> OK</button>
-          <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeCheckinItemForm('checkout')">Annuler</button>
-        </div>
+      <div class="adm-form-group">
+        <label class="adm-label">Instructions <span style="font-weight:400;color:var(--adm-text-dim,#666);">— une ligne = une étape</span></label>
+        <textarea class="adm-input" id="dr-checkout-inst" rows="5"
+          placeholder="Déposer les clés sur le comptoir&#10;Éteindre toutes les lumières&#10;Fermer la porte à clé"></textarea>
       </div>
 
       <div class="adm-separator"></div>

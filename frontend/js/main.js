@@ -48,8 +48,8 @@ function renderAll(data) {
   updateMeta(data);
   renderHero(data);
   renderBooking(data, data.bookings);
-  renderArrivee(data.rules, data.checkinItems || []);
-  renderDepart(data.rules, data.checkinItems || []);
+  renderArrivee(data.rules);
+  renderDepart(data.rules);
   renderWifi(data.rules);
   renderEquipements(data.rooms || []);
   renderConfort(data.rooms || []);
@@ -126,34 +126,26 @@ function renderAccordionSection(items, containerId, idOffset, emptyMsg) {
   setTimeout(() => lucide.createIcons(), 60);
 }
 
-function renderArrivee(rules, checkinItems) {
+function renderArrivee(rules) {
   const c = document.getElementById('arrivee-container');
   if (!rules) { c.innerHTML = ''; return; }
-  const items = checkinItems.filter(i => i.type === 'checkin');
-  c.innerHTML = renderCheckinBlock(rules.check_in_time || '15:00', items);
-  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
+  c.innerHTML = renderCheckinBlock(rules.check_in_time || '15:00', rules.check_in_instructions || '');
 }
 
-function renderDepart(rules, checkinItems) {
+function renderDepart(rules) {
   const c = document.getElementById('depart-container');
   if (!rules) { c.innerHTML = ''; return; }
-  const items = checkinItems.filter(i => i.type === 'checkout');
-  c.innerHTML = renderCheckinBlock(rules.check_out_time || '11:00', items);
-  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
+  c.innerHTML = renderCheckinBlock(rules.check_out_time || '11:00', rules.check_out_instructions || '');
 }
 
-function renderCheckinBlock(time, items) {
-  const timeHtml = `<div class="checkin-time reveal">${esc(time)}</div>`;
-  if (!items.length) return timeHtml;
-  const stepsHtml = items.map(it => `
-    <div class="checkin-step reveal">
-      <div class="checkin-step-icon">
-        <i data-lucide="${esc(it.icon || 'check')}" style="width:18px;height:18px;"></i>
-      </div>
-      <div class="checkin-step-body">
-        <p class="checkin-step-title">${esc(it.title)}</p>
-        ${it.description ? `<p class="checkin-step-desc">${esc(it.description).replace(/\n/g,'<br>')}</p>` : ''}
-      </div>
+function renderCheckinBlock(time, text) {
+  const lines = (text || '').split('\n').map(l => l.trim()).filter(Boolean);
+  const timeHtml = `<div class="checkin-time">${esc(time)}</div>`;
+  if (!lines.length) return timeHtml;
+  const stepsHtml = lines.map((line, i) => `
+    <div class="checkin-step">
+      <div class="checkin-step-num">${i + 1}</div>
+      <p class="checkin-step-text">${esc(line)}</p>
     </div>`).join('');
   return `${timeHtml}<div class="checkin-steps">${stepsHtml}</div>`;
 }
@@ -809,8 +801,10 @@ window.adminDeleteEquip = async function(id, name) {
 async function adminLoadRules() {
   try {
     const r = await apiFetch(`/api/rules/${PROPERTY_ID}`, false);
-    document.getElementById('dr-checkin-time').value  = r.check_in_time || '15:00';
+    document.getElementById('dr-checkin-time').value  = r.check_in_time  || '15:00';
     document.getElementById('dr-checkout-time').value = r.check_out_time || '11:00';
+    document.getElementById('dr-checkin-inst').value  = r.check_in_instructions  || '';
+    document.getElementById('dr-checkout-inst').value = r.check_out_instructions || '';
     document.getElementById('dr-wifi-name').value     = r.wifi_name || '';
     document.getElementById('dr-wifi-pass').value     = r.wifi_password || '';
     document.getElementById('dr-trash').value         = r.trash_instructions || '';
@@ -818,106 +812,26 @@ async function adminLoadRules() {
     document.getElementById('dr-parking').value       = r.parking_instructions || '';
     document.getElementById('dr-places').value        = r.places_to_discover || '';
   } catch {}
-  await adminLoadCheckinItems();
 }
 
 window.adminSaveRules = async function() {
   try {
     await apiFetch(`/api/rules/${PROPERTY_ID}`, true, 'PUT', {
-      check_in_time:        document.getElementById('dr-checkin-time').value,
-      check_out_time:       document.getElementById('dr-checkout-time').value,
-      wifi_name:            document.getElementById('dr-wifi-name').value,
-      wifi_password:        document.getElementById('dr-wifi-pass').value,
-      trash_instructions:   document.getElementById('dr-trash').value,
-      house_rules:          document.getElementById('dr-house-rules').value,
-      parking_instructions: document.getElementById('dr-parking').value,
-      places_to_discover:   document.getElementById('dr-places').value,
+      check_in_time:          document.getElementById('dr-checkin-time').value,
+      check_out_time:         document.getElementById('dr-checkout-time').value,
+      check_in_instructions:  document.getElementById('dr-checkin-inst').value,
+      check_out_instructions: document.getElementById('dr-checkout-inst').value,
+      wifi_name:              document.getElementById('dr-wifi-name').value,
+      wifi_password:          document.getElementById('dr-wifi-pass').value,
+      trash_instructions:     document.getElementById('dr-trash').value,
+      house_rules:            document.getElementById('dr-house-rules').value,
+      parking_instructions:   document.getElementById('dr-parking').value,
+      places_to_discover:     document.getElementById('dr-places').value,
     });
     toast('Contenu enregistré');
     await refreshPage();
   } catch (err) { toast(err.message, 'error'); }
 };
-
-// ── Points check-in / check-out ──
-async function adminLoadCheckinItems() {
-  try {
-    const items = await apiFetch(`/api/checkin-items/${PROPERTY_ID}`, false);
-    renderCheckinAdminList(items.filter(i => i.type === 'checkin'), 'ci-checkin-list', 'checkin');
-    renderCheckinAdminList(items.filter(i => i.type === 'checkout'), 'ci-checkout-list', 'checkout');
-  } catch {}
-}
-
-function renderCheckinAdminList(items, containerId, type) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  if (!items.length) { el.innerHTML = '<p style="font-size:0.75rem;color:var(--adm-text-dim,#555560);">Aucun point ajouté.</p>'; return; }
-  el.innerHTML = items.map(it => `
-    <div style="display:flex;align-items:center;gap:0.4rem;padding:0.45rem 0.6rem;background:var(--adm-surface-2,#1a1a1e);border:1px solid var(--adm-border,#2a2a30);">
-      <i data-lucide="${esc(it.icon||'check')}" style="width:12px;height:12px;color:var(--gold,#c9a96e);flex-shrink:0;"></i>
-      <span style="flex:1;font-size:0.78rem;color:var(--adm-text,#f0f0f0);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(it.title)}</span>
-      <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="editCheckinItem(${it.id},'${type}')" title="Modifier">
-        <i data-lucide="pencil" style="width:11px;height:11px;"></i>
-      </button>
-      <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="deleteCheckinItem(${it.id})" title="Supprimer">
-        <i data-lucide="x" style="width:11px;height:11px;"></i>
-      </button>
-    </div>`).join('');
-  setTimeout(() => lucide.createIcons(), 60);
-}
-
-window.openCheckinItemForm = function(type) {
-  document.getElementById(`ci-${type}-id`).value = '';
-  document.getElementById(`ci-${type}-title`).value = '';
-  document.getElementById(`ci-${type}-icon`).value = 'check';
-  document.getElementById(`ci-${type}-desc`).value = '';
-  document.getElementById(`ci-${type}-form`).style.display = 'block';
-  document.getElementById(`ci-${type}-title`).focus();
-};
-
-window.closeCheckinItemForm = function(type) {
-  document.getElementById(`ci-${type}-form`).style.display = 'none';
-};
-
-window.editCheckinItem = async function(id, type) {
-  try {
-    const items = await apiFetch(`/api/checkin-items/${PROPERTY_ID}`, false);
-    const it = items.find(i => i.id === id);
-    if (!it) return;
-    document.getElementById(`ci-${type}-id`).value    = it.id;
-    document.getElementById(`ci-${type}-title`).value = it.title;
-    document.getElementById(`ci-${type}-icon`).value  = it.icon || 'check';
-    document.getElementById(`ci-${type}-desc`).value  = it.description || '';
-    document.getElementById(`ci-${type}-form`).style.display = 'block';
-    document.getElementById(`ci-${type}-title`).focus();
-  } catch(err) { toast(err.message, 'error'); }
-};
-
-window.saveCheckinItem = async function(type) {
-  const id    = document.getElementById(`ci-${type}-id`).value;
-  const title = document.getElementById(`ci-${type}-title`).value.trim();
-  const icon  = document.getElementById(`ci-${type}-icon`).value;
-  const desc  = document.getElementById(`ci-${type}-desc`).value.trim();
-  if (!title) { toast('Le titre est requis', 'error'); return; }
-  try {
-    if (id) {
-      await apiFetch(`/api/checkin-items/${id}`, true, 'PUT', { title, icon, description: desc });
-    } else {
-      await apiFetch('/api/checkin-items', true, 'POST', { property_id: PROPERTY_ID, type, title, icon, description: desc });
-    }
-    closeCheckinItemForm(type);
-    await adminLoadCheckinItems();
-    await refreshPage();
-  } catch(err) { toast(err.message, 'error'); }
-};
-
-window.deleteCheckinItem = async function(id) {
-  try {
-    await apiFetch(`/api/checkin-items/${id}`, true, 'DELETE');
-    await adminLoadCheckinItems();
-    await refreshPage();
-  } catch(err) { toast(err.message, 'error'); }
-};
-
 
 // ── Réservation ──
 async function adminLoadBooking() {
