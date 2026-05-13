@@ -494,12 +494,9 @@ window.closeHelp = () => { helpOpen = false; document.getElementById('help-modal
 // ── ADMIN : AUTHENTIFICATION ──────────────────────────────
 // ══════════════════════════════════════════════════════════
 window.handleAdminTrigger = function() {
-  if (adminToken) {
-    openAdminDrawer();
-  } else {
-    document.getElementById('admin-login-modal').style.display = 'flex';
-    setTimeout(() => document.getElementById('adm-username').focus(), 50);
-  }
+  // Auth temporairement désactivée — ouvre le drawer directement
+  applyAdminActiveState();
+  openAdminDrawer();
 };
 
 window.closeAdminLogin = function() {
