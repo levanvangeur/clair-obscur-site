@@ -824,8 +824,7 @@ async function adminLoadRules() {
   await adminLoadCheckinItems();
 }
 
-window.adminSaveRules = async function(e) {
-  e.preventDefault();
+window.adminSaveRules = async function() {
   try {
     await apiFetch(`/api/rules/${PROPERTY_ID}`, true, 'PUT', {
       check_in_time:        document.getElementById('dr-checkin-time').value,
