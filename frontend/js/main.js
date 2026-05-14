@@ -701,46 +701,76 @@ window.adminLoadEquip = async function() {
     }
     currentEquipList = items;
     if (!items.length) { list.innerHTML = '<p style="color:var(--adm-text-muted);font-size:0.82rem;">Aucun équipement.</p>'; return; }
-    list.innerHTML = items.map((e, idx) => {
-      const isFirst = idx === 0 || items[idx - 1].room_id !== e.room_id;
-      const isLast  = idx === items.length - 1 || items[idx + 1].room_id !== e.room_id;
-      return `
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:0.625rem 0;border-bottom:1px solid var(--adm-border);">
-        <div style="display:flex;align-items:center;gap:0.6rem;min-width:0;">
-          <span style="color:var(--gold);flex-shrink:0;">${iconSvg(e.icon, 14)}</span>
-          <div style="min-width:0;">
-            <p style="font-size:0.83rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.name)}</p>
-            <p style="font-size:0.72rem;color:var(--adm-text-muted);">${esc(e.roomName)}</p>
-          </div>
+
+    list.innerHTML = items.map(e => `
+      <div class="equip-drag-row" draggable="true" data-id="${e.id}" data-room-id="${e.room_id}"
+           style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--adm-border);">
+        <span class="equip-drag-handle" title="Glisser pour réordonner">⠿</span>
+        <span style="color:var(--gold);flex-shrink:0;">${iconSvg(e.icon, 14)}</span>
+        <div style="flex:1;min-width:0;">
+          <p style="font-size:0.83rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.name)}</p>
+          <p style="font-size:0.72rem;color:var(--adm-text-muted);">${esc(e.roomName)}</p>
         </div>
-        <div style="display:flex;gap:0.3rem;flex-shrink:0;margin-left:0.5rem;">
-          <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminMoveEquip(${e.id},-1)" ${isFirst ? 'disabled style="opacity:0.25;"' : ''} title="Monter">↑</button>
-          <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminMoveEquip(${e.id},+1)" ${isLast  ? 'disabled style="opacity:0.25;"' : ''} title="Descendre">↓</button>
+        <div style="display:flex;gap:0.3rem;flex-shrink:0;">
           <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminEditEquip(${e.id})"><i data-lucide="pencil" style="width:11px;height:11px;"></i></button>
           <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteEquip(${e.id},'${esc(e.name)}')"><i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>
         </div>
-      </div>`;
-    }).join('');
+      </div>`).join('');
+
+    setupEquipDragDrop();
     setTimeout(() => lucide.createIcons(), 60);
   } catch (err) { list.innerHTML = `<p style="color:#e05555;font-size:0.82rem;">${err.message}</p>`; }
 };
 
-window.adminMoveEquip = async function(id, dir) {
-  const idx = currentEquipList.findIndex(e => e.id === id);
-  const swapIdx = idx + dir;
-  if (swapIdx < 0 || swapIdx >= currentEquipList.length) return;
+function setupEquipDragDrop() {
+  let dragId = null;
+  let dragRoomId = null;
 
-  const a = currentEquipList[idx];
-  const b = currentEquipList[swapIdx];
-  if (a.room_id !== b.room_id) return; // ne pas mélanger les pièces
+  document.querySelectorAll('.equip-drag-row').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      dragId     = parseInt(row.dataset.id);
+      dragRoomId = parseInt(row.dataset.roomId);
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => row.classList.add('equip-dragging'), 0);
+    });
 
-  try {
-    await apiFetch(`/api/equipment/${a.id}/order`, true, 'PUT', { order_index: b.order_index });
-    await apiFetch(`/api/equipment/${b.id}/order`, true, 'PUT', { order_index: a.order_index });
-    await adminLoadEquip();
-    await refreshPage();
-  } catch (err) { toast(err.message, 'error'); }
-};
+    row.addEventListener('dragend', () => {
+      row.classList.remove('equip-dragging');
+      document.querySelectorAll('.equip-drag-over').forEach(r => r.classList.remove('equip-drag-over'));
+    });
+
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (parseInt(row.dataset.roomId) === dragRoomId && parseInt(row.dataset.id) !== dragId) {
+        row.classList.add('equip-drag-over');
+      }
+    });
+
+    row.addEventListener('dragleave', () => row.classList.remove('equip-drag-over'));
+
+    row.addEventListener('drop', async e => {
+      e.preventDefault();
+      row.classList.remove('equip-drag-over');
+      const targetId = parseInt(row.dataset.id);
+      if (targetId === dragId || parseInt(row.dataset.roomId) !== dragRoomId) return;
+
+      // Réordonner les items du même room
+      const roomItems = currentEquipList.filter(i => i.room_id === dragRoomId);
+      const fromIdx = roomItems.findIndex(i => i.id === dragId);
+      const toIdx   = roomItems.findIndex(i => i.id === targetId);
+      const [moved] = roomItems.splice(fromIdx, 1);
+      roomItems.splice(toIdx, 0, moved);
+
+      try {
+        for (let i = 0; i < roomItems.length; i++) {
+          await apiFetch(`/api/equipment/${roomItems[i].id}/order`, true, 'PUT', { order_index: i + 1 });
+        }
+        await adminLoadEquip();
+        await refreshPage();
+      } catch (err) { toast(err.message, 'error'); }
+    });
+  });
+}
 
 window.openEquipForm = function() {
   document.getElementById('ef-id').value = '';

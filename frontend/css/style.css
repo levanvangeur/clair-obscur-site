@@ -1287,6 +1287,24 @@ select.adm-input { cursor: pointer; }
 .adm-btn-danger-xs { padding: 0.25rem 0.5rem; font-size: 0.7rem; background: rgba(224,85,85,0.08); border: 1px solid rgba(224,85,85,0.2); color: #e05555; cursor: pointer; border-radius: 1px; display: inline-flex; align-items: center; gap: 0.25rem; font-family: inherit; transition: all 0.2s; }
 .adm-btn-danger-xs:hover { background: rgba(224,85,85,0.15); }
 
+/* ── Drag & drop équipements ───────────────────────────── */
+.equip-drag-handle {
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--adm-text-dim, #44444a);
+  cursor: grab;
+  flex-shrink: 0;
+  user-select: none;
+  padding: 0 2px;
+  transition: color 0.15s;
+}
+.equip-drag-row:hover .equip-drag-handle { color: var(--adm-text-muted); }
+.equip-drag-row.equip-dragging { opacity: 0.35; }
+.equip-drag-row.equip-drag-over {
+  border-top: 2px solid var(--gold) !important;
+  margin-top: -1px;
+}
+
 /* ── Upload zone admin ─────────────────────────────────── */
 .adm-upload-zone {
   border: 1px dashed var(--adm-border);
