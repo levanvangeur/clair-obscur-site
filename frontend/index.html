@@ -324,57 +324,42 @@
 
     <!-- ── Équipements ── -->
     <div class="drw-panel" id="drw-equip">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-        <div class="adm-form-group" style="flex:1;margin-bottom:0;margin-right:0.75rem;">
-          <select class="adm-input adm-input-sm" id="drw-equip-room-filter" onchange="adminLoadEquip()">
-            <option value="">Toutes les pièces</option>
-          </select>
-        </div>
-        <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="openEquipForm()">
-          <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
-        </button>
-      </div>
-      <div id="equip-form-block" style="display:none;background:var(--adm-surface-2);padding:1rem;margin-bottom:1rem;border:1px solid var(--adm-border);">
+
+      <!-- Formulaire partagé (caché par défaut) -->
+      <div id="equip-form-block" style="display:none;background:var(--adm-surface-2);padding:1rem;margin-bottom:1.25rem;border:1px solid var(--adm-border);">
         <p class="adm-label" style="margin-bottom:0.75rem;" id="equip-form-title">Nouvel équipement</p>
         <input type="hidden" id="ef-id">
-        <div class="adm-form-group"><label class="adm-label">Pièce</label><select class="adm-input" id="ef-room-id"></select></div>
+        <input type="hidden" id="ef-category">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
           <div class="adm-form-group"><label class="adm-label">Nom</label><input type="text" class="adm-input" id="ef-name" placeholder="Télévision 4K"></div>
           <div class="adm-form-group">
             <label class="adm-label">Icône</label>
             <select class="adm-input" id="ef-icon">
-              <optgroup label="Équipements">
-                <option value="wrench">🔧 Outil</option>
-                <option value="tv-2">📺 TV</option>
-                <option value="wifi">📶 WiFi</option>
-                <option value="wind">💨 Clim / Sèche-cheveux</option>
-                <option value="flame">🔥 Plaque</option>
-                <option value="square">⬜ Four</option>
-                <option value="droplets">💧 Lave-vaisselle</option>
-                <option value="coffee">☕ Cafetière</option>
-                <option value="moon">🌙 Literie</option>
-                <option value="sun">☀️ Store / Volet</option>
-                <option value="droplet">🚿 Douche</option>
-                <option value="zap">⚡ Électricité</option>
-                <option value="thermometer">🌡️ Chauffage</option>
-                <option value="key">🔑 Clé / Accès</option>
-                <option value="lock">🔒 Cadenas</option>
-                <option value="trash-2">🗑️ Poubelle</option>
-                <option value="utensils">🍴 Ustensiles</option>
-                <option value="refrigerator">🧊 Réfrigérateur</option>
-                <option value="sofa">🛋️ Canapé</option>
-                <option value="bath">🛁 Baignoire</option>
-                <option value="info">ℹ️ Info</option>
-              </optgroup>
+              <option value="wrench">🔧 Outil</option>
+              <option value="tv-2">📺 TV</option>
+              <option value="wifi">📶 WiFi</option>
+              <option value="wind">💨 Clim / Ventilateur</option>
+              <option value="flame">🔥 Plaque de cuisson</option>
+              <option value="square">⬜ Four</option>
+              <option value="droplets">💧 Lave-vaisselle</option>
+              <option value="coffee">☕ Cafetière</option>
+              <option value="moon">🌙 Literie</option>
+              <option value="sun">☀️ Store / Volet</option>
+              <option value="droplet">🚿 Douche</option>
+              <option value="zap">⚡ Électricité</option>
+              <option value="thermometer">🌡️ Chauffage</option>
+              <option value="key">🔑 Clé / Accès</option>
+              <option value="lock">🔒 Cadenas</option>
+              <option value="trash-2">🗑️ Poubelle</option>
+              <option value="utensils">🍴 Ustensiles</option>
+              <option value="refrigerator">🧊 Réfrigérateur</option>
+              <option value="sofa">🛋️ Canapé</option>
+              <option value="bath">🛁 Baignoire</option>
+              <option value="trees">🌳 Terrasse / Balcon</option>
+              <option value="glass-water">🍹 Bar américain</option>
+              <option value="info">ℹ️ Info</option>
             </select>
           </div>
-        </div>
-        <div class="adm-form-group">
-          <label class="adm-label">Catégorie</label>
-          <select class="adm-input" id="ef-category">
-            <option value="equipement">Équipements</option>
-            <option value="confort">Confort</option>
-          </select>
         </div>
         <div class="adm-form-group"><label class="adm-label">Instructions</label><textarea class="adm-input" id="ef-instructions" rows="3" placeholder="Comment utiliser…"></textarea></div>
         <div class="adm-form-group"><label class="adm-label">Astuce</label><input type="text" class="adm-input" id="ef-tips" placeholder="Conseil pratique…"></div>
@@ -383,7 +368,25 @@
           <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeEquipForm()">Annuler</button>
         </div>
       </div>
-      <div id="drw-equip-list"><p style="color:var(--adm-text-muted);font-size:0.82rem;">Chargement…</p></div>
+
+      <!-- Section Équipements -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+        <p class="adm-section-title" style="margin:0;">Équipements</p>
+        <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="openEquipForm('equipement')">
+          <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
+        </button>
+      </div>
+      <div id="drw-equip-list" style="margin-bottom:1.75rem;"></div>
+
+      <!-- Section Confort -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+        <p class="adm-section-title" style="margin:0;">Confort</p>
+        <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="openEquipForm('confort')">
+          <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
+        </button>
+      </div>
+      <div id="drw-confort-list"></div>
+
     </div>
 
     <!-- ── Contenu ── -->

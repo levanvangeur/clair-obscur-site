@@ -593,13 +593,7 @@ async function adminLoadDrawerData() {
 }
 
 function populateRoomSelects() {
-  ['drw-equip-room-filter', 'ef-room-id'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const isFilter = id === 'drw-equip-room-filter';
-    el.innerHTML = (isFilter ? '<option value="">Toutes les pièces</option>' : '') +
-      adminRooms.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('');
-  });
+  // Rooms masquées de l'UI
 }
 
 // ── Info logement ──
@@ -686,84 +680,74 @@ window.adminUploadPropImage = async function(input) {
 let currentEquipList = [];
 
 window.adminLoadEquip = async function() {
-  const list = document.getElementById('drw-equip-list');
-  const filterRoomId = document.getElementById('drw-equip-room-filter').value;
   try {
     let items = [];
-    if (filterRoomId) {
-      const raw = await apiFetch(`/api/equipment/${filterRoomId}`, false);
-      items = raw.map(e => ({ ...e, roomName: adminRooms.find(r => r.id === e.room_id)?.name || '—' }));
-    } else {
-      for (const room of adminRooms) {
-        const raw = await apiFetch(`/api/equipment/${room.id}`, false).catch(() => []);
-        items.push(...raw.map(e => ({ ...e, roomName: room.name })));
-      }
+    for (const room of adminRooms) {
+      const raw = await apiFetch(`/api/equipment/${room.id}`, false).catch(() => []);
+      items.push(...raw);
     }
     currentEquipList = items;
-    if (!items.length) { list.innerHTML = '<p style="color:var(--adm-text-muted);font-size:0.82rem;">Aucun équipement.</p>'; return; }
-
-    list.innerHTML = items.map(e => `
-      <div class="equip-drag-row" draggable="true" data-id="${e.id}" data-room-id="${e.room_id}"
-           style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--adm-border);">
-        <span class="equip-drag-handle" title="Glisser pour réordonner">⠿</span>
-        <span style="color:var(--gold);flex-shrink:0;">${iconSvg(e.icon, 14)}</span>
-        <div style="flex:1;min-width:0;">
-          <p style="font-size:0.83rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.name)}</p>
-          <p style="font-size:0.72rem;color:var(--adm-text-muted);">${esc(e.roomName)}</p>
-        </div>
-        <div style="display:flex;gap:0.3rem;flex-shrink:0;">
-          <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminEditEquip(${e.id})"><i data-lucide="pencil" style="width:11px;height:11px;"></i></button>
-          <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteEquip(${e.id},'${esc(e.name)}')"><i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>
-        </div>
-      </div>`).join('');
-
-    setupEquipDragDrop();
+    const eq = items.filter(e => !e.category || e.category === 'equipement');
+    const co = items.filter(e => e.category === 'confort');
+    renderEquipAdminList(eq, 'drw-equip-list',   'equipement');
+    renderEquipAdminList(co, 'drw-confort-list', 'confort');
     setTimeout(() => lucide.createIcons(), 60);
-  } catch (err) { list.innerHTML = `<p style="color:#e05555;font-size:0.82rem;">${err.message}</p>`; }
+  } catch (err) {
+    document.getElementById('drw-equip-list').innerHTML = `<p style="color:#e05555;">${err.message}</p>`;
+  }
 };
 
-function setupEquipDragDrop() {
-  let dragId = null;
-  let dragRoomId = null;
+function renderEquipAdminList(items, containerId, category) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!items.length) { el.innerHTML = '<p style="font-size:0.78rem;color:var(--adm-text-dim,#55555a);">Aucun élément.</p>'; return; }
+  el.innerHTML = items.map(e => `
+    <div class="equip-drag-row" draggable="true" data-id="${e.id}" data-category="${e.category||'equipement'}"
+         style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--adm-border);">
+      <span class="equip-drag-handle" title="Glisser">⠿</span>
+      <span style="color:var(--gold);flex-shrink:0;">${iconSvg(e.icon, 14)}</span>
+      <p style="flex:1;font-size:0.83rem;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(e.name)}</p>
+      <div style="display:flex;gap:0.3rem;flex-shrink:0;">
+        <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminEditEquip(${e.id})"><i data-lucide="pencil" style="width:11px;height:11px;"></i></button>
+        <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteEquip(${e.id},'${esc(e.name)}')"><i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>
+      </div>
+    </div>`).join('');
+  setupEquipDragDrop(containerId, category);
+}
 
-  document.querySelectorAll('.equip-drag-row').forEach(row => {
+function setupEquipDragDrop(containerId, category) {
+  let dragId = null;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.querySelectorAll('.equip-drag-row').forEach(row => {
     row.addEventListener('dragstart', e => {
-      dragId     = parseInt(row.dataset.id);
-      dragRoomId = parseInt(row.dataset.roomId);
+      dragId = parseInt(row.dataset.id);
       e.dataTransfer.effectAllowed = 'move';
       setTimeout(() => row.classList.add('equip-dragging'), 0);
     });
-
     row.addEventListener('dragend', () => {
       row.classList.remove('equip-dragging');
-      document.querySelectorAll('.equip-drag-over').forEach(r => r.classList.remove('equip-drag-over'));
+      container.querySelectorAll('.equip-drag-over').forEach(r => r.classList.remove('equip-drag-over'));
     });
-
     row.addEventListener('dragover', e => {
       e.preventDefault();
-      if (parseInt(row.dataset.roomId) === dragRoomId && parseInt(row.dataset.id) !== dragId) {
-        row.classList.add('equip-drag-over');
-      }
+      if (parseInt(row.dataset.id) !== dragId) row.classList.add('equip-drag-over');
     });
-
     row.addEventListener('dragleave', () => row.classList.remove('equip-drag-over'));
-
     row.addEventListener('drop', async e => {
       e.preventDefault();
       row.classList.remove('equip-drag-over');
       const targetId = parseInt(row.dataset.id);
-      if (targetId === dragId || parseInt(row.dataset.roomId) !== dragRoomId) return;
-
-      // Réordonner les items du même room
-      const roomItems = currentEquipList.filter(i => i.room_id === dragRoomId);
-      const fromIdx = roomItems.findIndex(i => i.id === dragId);
-      const toIdx   = roomItems.findIndex(i => i.id === targetId);
-      const [moved] = roomItems.splice(fromIdx, 1);
-      roomItems.splice(toIdx, 0, moved);
-
+      if (targetId === dragId) return;
+      const cat = currentEquipList.filter(i => (i.category||'equipement') === category);
+      const fi = cat.findIndex(i => i.id === dragId);
+      const ti = cat.findIndex(i => i.id === targetId);
+      const [mv] = cat.splice(fi, 1);
+      cat.splice(ti, 0, mv);
       try {
-        for (let i = 0; i < roomItems.length; i++) {
-          await apiFetch(`/api/equipment/${roomItems[i].id}/order`, true, 'PUT', { order_index: i + 1 });
+        for (let i = 0; i < cat.length; i++) {
+          await apiFetch(`/api/equipment/${cat[i].id}/order`, true, 'PUT', { order_index: i + 1 });
         }
         await adminLoadEquip();
         await refreshPage();
@@ -772,45 +756,50 @@ function setupEquipDragDrop() {
   });
 }
 
-window.openEquipForm = function() {
+window.openEquipForm = function(category) {
+  const cat = category || 'equipement';
   document.getElementById('ef-id').value = '';
   document.getElementById('ef-name').value = '';
   document.getElementById('ef-icon').value = 'wrench';
-  document.getElementById('ef-category').value = 'equipement';
+  document.getElementById('ef-category').value = cat;
   document.getElementById('ef-instructions').value = '';
   document.getElementById('ef-tips').value = '';
-  document.getElementById('equip-form-title').textContent = 'Nouvel équipement';
+  document.getElementById('equip-form-title').textContent = cat === 'confort' ? 'Nouvel élément de confort' : 'Nouvel équipement';
   document.getElementById('equip-form-block').style.display = 'block';
 };
 window.closeEquipForm = function() { document.getElementById('equip-form-block').style.display = 'none'; };
 
-window.adminEditEquip = async function(id) {
-  let found = null;
-  for (const room of adminRooms) {
-    const items = await apiFetch(`/api/equipment/${room.id}`, false).catch(() => []);
-    found = items.find(e => e.id === id);
-    if (found) break;
-  }
+window.adminEditEquip = function(id) {
+  const found = currentEquipList.find(e => e.id === id);
   if (!found) return;
+  const cat = found.category || 'equipement';
   document.getElementById('ef-id').value = found.id;
-  document.getElementById('ef-room-id').value = found.room_id;
   document.getElementById('ef-name').value = found.name;
   document.getElementById('ef-icon').value = found.icon || 'wrench';
-  document.getElementById('ef-category').value = found.category || 'equipement';
+  document.getElementById('ef-category').value = cat;
   document.getElementById('ef-instructions').value = found.instructions || '';
   document.getElementById('ef-tips').value = found.tips || '';
-  document.getElementById('equip-form-title').textContent = 'Modifier l\'équipement';
+  document.getElementById('equip-form-title').textContent = cat === 'confort' ? 'Modifier confort' : 'Modifier équipement';
   document.getElementById('equip-form-block').style.display = 'block';
   document.getElementById('equip-form-block').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 };
 
 window.adminSaveEquip = async function() {
   const id = document.getElementById('ef-id').value;
-  const body = { room_id: document.getElementById('ef-room-id').value, name: document.getElementById('ef-name').value.trim(), icon: document.getElementById('ef-icon').value, category: document.getElementById('ef-category').value, instructions: document.getElementById('ef-instructions').value.trim(), tips: document.getElementById('ef-tips').value.trim() };
+  const roomId = adminRooms[0]?.id;
+  if (!roomId) return toast('Aucune pièce disponible', 'error');
+  const body = {
+    room_id: roomId,
+    name: document.getElementById('ef-name').value.trim(),
+    icon: document.getElementById('ef-icon').value,
+    category: document.getElementById('ef-category').value,
+    instructions: document.getElementById('ef-instructions').value.trim(),
+    tips: document.getElementById('ef-tips').value.trim(),
+  };
   if (!body.name) return toast('Nom requis', 'error');
   try {
-    if (id) { await apiFetch(`/api/equipment/${id}`, true, 'PUT', body); toast('Équipement mis à jour'); }
-    else     { await apiFetch('/api/equipment', true, 'POST', body); toast('Équipement créé'); }
+    if (id) { await apiFetch(`/api/equipment/${id}`, true, 'PUT', body); toast('Mis à jour'); }
+    else     { await apiFetch('/api/equipment', true, 'POST', body); toast('Créé'); }
     closeEquipForm();
     await adminLoadEquip();
     await refreshPage();
