@@ -1295,11 +1295,9 @@ select.adm-input { cursor: pointer; }
   transition: color 0.15s;
 }
 .equip-drag-row:hover .equip-drag-handle { color: var(--adm-text-muted); }
-.equip-drag-row.equip-dragging { opacity: 0.35; }
-/* Désactiver les enfants de la row en cours de glissement uniquement */
+.equip-drag-row.equip-dragging { opacity: 0.4; cursor: grabbing; }
+/* Bloquer les enfants de la row DRAGGÉE pour éviter les fantômes de curseur */
 .equip-drag-row.equip-dragging * { pointer-events: none; }
-/* Pendant le drag actif sur le container : bloquer les enfants des autres rows */
-.equip-drag-active .equip-drag-row > * { pointer-events: none; }
 .equip-drag-row.equip-drag-over {
   border-top: 2px solid var(--gold) !important;
   margin-top: -1px;

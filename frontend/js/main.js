@@ -719,69 +719,73 @@ function setupEquipDragDrop(containerId, category) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  let dragId    = null;
-  let overRow   = null;
+  // dragSrcId partagé par toutes les rows du même container via closure
+  let dragSrcId = null;
 
-  function getRow(el) { return el?.closest?.('.equip-drag-row'); }
+  container.querySelectorAll('.equip-drag-row').forEach(row => {
 
-  function clearOver() {
-    if (overRow) { overRow.classList.remove('equip-drag-over'); overRow = null; }
-  }
+    // ── Démarrage ──────────────────────────────────────────────
+    row.addEventListener('dragstart', e => {
+      dragSrcId = parseInt(row.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(dragSrcId)); // requis Firefox
+      setTimeout(() => row.classList.add('equip-dragging'), 0);
+    });
 
-  container.addEventListener('dragstart', e => {
-    const row = getRow(e.target);
-    if (!row) return;
-    dragId = parseInt(row.dataset.id);
-    e.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => {
-      row.classList.add('equip-dragging');
-      container.classList.add('equip-drag-active');
-    }, 0);
-  });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('equip-dragging');
+      container.querySelectorAll('.equip-drag-over')
+               .forEach(r => r.classList.remove('equip-drag-over'));
+    });
 
-  container.addEventListener('dragend', () => {
-    container.querySelectorAll('.equip-dragging').forEach(r => r.classList.remove('equip-dragging'));
-    container.classList.remove('equip-drag-active');
-    clearOver();
-    dragId = null;
-  });
-
-  container.addEventListener('dragover', e => {
-    e.preventDefault();
-    const row = getRow(e.target);
-    if (!row || parseInt(row.dataset.id) === dragId) { clearOver(); return; }
-    if (row !== overRow) { clearOver(); overRow = row; row.classList.add('equip-drag-over'); }
-  });
-
-  container.addEventListener('dragleave', e => {
-    // Ignorer si on reste dans le container (passage sur un enfant)
-    if (container.contains(e.relatedTarget)) return;
-    clearOver();
-  });
-
-  container.addEventListener('drop', async e => {
-    e.preventDefault();
-    const row = getRow(e.target);
-    clearOver();
-    if (!row || !dragId) return;
-    const targetId = parseInt(row.dataset.id);
-    if (targetId === dragId) return;
-
-    const cat = currentEquipList.filter(i => (i.category || 'equipement') === category);
-    const fi  = cat.findIndex(i => i.id === dragId);
-    const ti  = cat.findIndex(i => i.id === targetId);
-    if (fi === -1 || ti === -1) return;
-
-    const [mv] = cat.splice(fi, 1);
-    cat.splice(ti, 0, mv);
-
-    try {
-      for (let i = 0; i < cat.length; i++) {
-        await apiFetch(`/api/equipment/${cat[i].id}/order`, true, 'PUT', { order_index: i + 1 });
+    // ── Survol ─────────────────────────────────────────────────
+    row.addEventListener('dragover', e => {
+      e.preventDefault();                   // autorise le drop
+      e.dataTransfer.dropEffect = 'move';
+      if (parseInt(row.dataset.id) !== dragSrcId) {
+        row.classList.add('equip-drag-over');
       }
-      await adminLoadEquip();
-      await refreshPage();
-    } catch (err) { toast(err.message, 'error'); }
+    });
+
+    // Retire le highlight seulement si on quitte vraiment la row
+    // (et non en passant sur un enfant)
+    row.addEventListener('dragleave', e => {
+      if (!row.contains(e.relatedTarget)) {
+        row.classList.remove('equip-drag-over');
+      }
+    });
+
+    // ── Dépôt ──────────────────────────────────────────────────
+    row.addEventListener('drop', async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      row.classList.remove('equip-drag-over');
+
+      const targetId = parseInt(row.dataset.id);
+      if (!dragSrcId || targetId === dragSrcId) return;
+
+      // Copie filtrée par catégorie — on réordonne dans cette copie
+      const cat = currentEquipList.filter(
+        i => (i.category || 'equipement') === category
+      );
+      const fi = cat.findIndex(i => i.id === dragSrcId);
+      const ti = cat.findIndex(i => i.id === targetId);
+      if (fi === -1 || ti === -1) return;
+
+      const [mv] = cat.splice(fi, 1);
+      cat.splice(ti, 0, mv);
+
+      try {
+        for (let i = 0; i < cat.length; i++) {
+          await apiFetch(
+            `/api/equipment/${cat[i].id}/order`, true, 'PUT',
+            { order_index: i + 1 }
+          );
+        }
+        await adminLoadEquip();
+        await refreshPage();
+      } catch (err) { toast(err.message, 'error'); }
+    });
   });
 }
 
