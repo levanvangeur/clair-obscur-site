@@ -645,7 +645,6 @@ async function adminLoadInfo() {
   document.getElementById('dp-desc').value    = propertyData.description || '';
   document.getElementById('dp-active').value  = String(propertyData.active ?? 1);
   adminLoadHeroGrid();
-  adminLoadGallery();
 }
 
 async function adminLoadHeroGrid() {
@@ -665,43 +664,6 @@ async function adminLoadHeroGrid() {
   } catch {}
 }
 
-async function adminLoadGallery() {
-  const grid = document.getElementById('dp-gallery-grid');
-  if (!grid) return;
-  try {
-    const data = await apiFetch(`/api/properties/${PROPERTY_ID}`, false);
-    const gallery = data.gallery || [];
-    grid.innerHTML = gallery.length ? gallery.map(img => `
-      <div style="position:relative;aspect-ratio:4/3;overflow:hidden;border:1px solid var(--adm-border);">
-        <img src="/uploads/${esc(img.filename)}" style="width:100%;height:100%;object-fit:cover;">
-        <button onclick="adminDeleteGalleryImg(${img.id})"
-          style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.7);border:none;color:white;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;">✕</button>
-      </div>`).join('')
-    : '<p style="font-size:0.75rem;color:var(--adm-text-muted);grid-column:1/-1;">Aucune photo.</p>';
-  } catch {}
-}
-
-window.adminUploadGalleryImg = async function(input) {
-  if (!input.files[0]) return;
-  const fd = new FormData();
-  fd.append('image', input.files[0]);
-  try {
-    toast('Upload…', 'info');
-    await apiFetchForm(`/api/properties/${PROPERTY_ID}/gallery`, fd);
-    toast('Photo ajoutée');
-    adminLoadGallery();
-  } catch (err) { toast(err.message, 'error'); }
-  input.value = '';
-};
-
-window.adminDeleteGalleryImg = async function(imgId) {
-  if (!confirm('Supprimer cette photo ?')) return;
-  try {
-    await apiFetch(`/api/properties/${PROPERTY_ID}/gallery/${imgId}`, true, 'DELETE');
-    toast('Photo supprimée');
-    adminLoadGallery();
-  } catch (err) { toast(err.message, 'error'); }
-};
 
 window.adminSaveProp = async function(e) {
   e.preventDefault();
