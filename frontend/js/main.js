@@ -717,21 +717,33 @@ function renderEquipAdminList(items, containerId, category) {
 
 function setupEquipDragDrop(containerId, category) {
   const container = document.getElementById(containerId);
-  if (!container || !window.Sortable) return;
+  if (!container) return;
+  if (!window.Sortable) {
+    console.error('SortableJS non chargé — drag désactivé');
+    return;
+  }
 
   // Détruire l'instance précédente pour éviter les listeners en double
   const existing = Sortable.get(container);
   if (existing) existing.destroy();
 
   Sortable.create(container, {
-    animation: 120,
+    animation: 150,
     handle: '.equip-drag-handle',
     draggable: '.equip-drag-row',
     ghostClass: 'equip-drag-ghost',
     dragClass: 'equip-dragging',
+    // forceFallback évite tous les bugs du HTML5 drag API dans un drawer
+    // position:fixed avec overflow-y:auto
+    forceFallback: true,
+    fallbackClass: 'equip-dragging',
+    fallbackOnBody: true,   // clone appendé au body → jamais clipé
+    fallbackTolerance: 3,   // évite les micro-drags accidentels
+    scroll: true,
+    scrollSensitivity: 60,
+    scrollSpeed: 10,
     onEnd: async evt => {
       if (evt.oldIndex === evt.newIndex) return;
-      // Lire l'ordre directement depuis le DOM (SortableJS l'a déjà mis à jour)
       const rows = container.querySelectorAll('.equip-drag-row');
       const ids  = Array.from(rows).map(r => parseInt(r.dataset.id));
       try {

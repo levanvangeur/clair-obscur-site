@@ -1295,16 +1295,23 @@ select.adm-input { cursor: pointer; }
   transition: color 0.15s;
 }
 .equip-drag-row:hover .equip-drag-handle { color: var(--adm-text-muted); }
-/* Élément en cours de glissement */
+/* Row en cours de glissement (reste dans la liste, semi-transparent) */
 .equip-drag-row.equip-dragging {
-  opacity: 0.45;
-  cursor: grabbing;
+  opacity: 0.35;
 }
-/* Fantôme SortableJS : emplacement cible */
+/* Clone qui suit la souris (fallbackOnBody → appendé au <body>) */
+.equip-drag-row.equip-dragging.sortable-fallback {
+  opacity: 1 !important;
+  background: var(--adm-surface, #1a1a1e);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  cursor: grabbing !important;
+}
+/* Placeholder SortableJS : montre où l'item va atterrir */
 .equip-drag-row.equip-drag-ghost {
-  opacity: 0.2;
-  background: color-mix(in srgb, var(--gold) 8%, transparent);
-  border-left: 2px solid var(--gold) !important;
+  opacity: 0.15;
+  border-top: 2px dashed var(--gold) !important;
 }
 
 /* ── Upload zone admin ─────────────────────────────────── */
