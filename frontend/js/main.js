@@ -686,6 +686,9 @@ window.adminLoadEquip = async function() {
       const raw = await apiFetch(`/api/equipment/${room.id}`, false).catch(() => []);
       items.push(...raw);
     }
+    // Tri global par order_index (les items viennent de plusieurs rooms
+    // différentes — la concat room par room ne respecte pas l'ordre voulu)
+    items.sort((a, b) => (a.order_index || 0) - (b.order_index || 0) || a.id - b.id);
     currentEquipList = items;
     const eq = items.filter(e => !e.category || e.category === 'equipement');
     const co = items.filter(e => e.category === 'confort');
