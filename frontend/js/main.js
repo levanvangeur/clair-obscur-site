@@ -700,62 +700,43 @@ window.adminLoadEquip = async function() {
 function renderEquipAdminList(items, containerId, category) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  if (!items.length) { el.innerHTML = '<p style="font-size:0.78rem;color:var(--adm-text-dim,#55555a);">Aucun élément.</p>'; return; }
-  el.innerHTML = items.map(e => `
-    <div class="equip-drag-row" data-id="${e.id}" data-category="${e.category||'equipement'}"
-         style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--adm-border);">
-      <span class="equip-drag-handle" title="Glisser pour réordonner">⠿</span>
+  if (!items.length) {
+    el.innerHTML = '<p style="font-size:0.78rem;color:var(--adm-text-dim,#55555a);">Aucun élément.</p>';
+    return;
+  }
+  el.innerHTML = items.map((e, i) => `
+    <div class="equip-row" data-id="${e.id}" data-category="${e.category||'equipement'}">
+      <div class="equip-row-order">
+        <button class="equip-order-btn" onclick="moveEquip(${e.id},'${category}',-1)" ${i === 0 ? 'disabled' : ''}>▲</button>
+        <span class="equip-order-num">${i + 1}</span>
+        <button class="equip-order-btn" onclick="moveEquip(${e.id},'${category}',1)" ${i === items.length - 1 ? 'disabled' : ''}>▼</button>
+      </div>
       <span style="color:var(--gold);flex-shrink:0;">${iconSvg(e.icon, 14)}</span>
-      <p style="flex:1;font-size:0.83rem;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(e.name)}</p>
+      <p class="equip-row-name">${esc(e.name)}</p>
       <div style="display:flex;gap:0.3rem;flex-shrink:0;">
         <button class="adm-btn adm-btn-ghost adm-btn-xs" onclick="adminEditEquip(${e.id})"><i data-lucide="pencil" style="width:11px;height:11px;"></i></button>
         <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteEquip(${e.id},'${esc(e.name)}')"><i data-lucide="trash-2" style="width:11px;height:11px;"></i></button>
       </div>
     </div>`).join('');
-  setupEquipDragDrop(containerId, category);
 }
 
-function setupEquipDragDrop(containerId, category) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  if (!window.Sortable) {
-    console.error('SortableJS non chargé — drag désactivé');
-    return;
-  }
+window.moveEquip = async function(id, category, dir) {
+  const list = currentEquipList.filter(i => (i.category || 'equipement') === category);
+  const idx  = list.findIndex(i => i.id === id);
+  const to   = idx + dir;
+  if (to < 0 || to >= list.length) return;
 
-  // Détruire l'instance précédente pour éviter les listeners en double
-  const existing = Sortable.get(container);
-  if (existing) existing.destroy();
+  // Échanger les deux items
+  [list[idx], list[to]] = [list[to], list[idx]];
 
-  Sortable.create(container, {
-    animation: 150,
-    handle: '.equip-drag-handle',
-    draggable: '.equip-drag-row',
-    ghostClass: 'equip-drag-ghost',
-    dragClass: 'equip-dragging',
-    // forceFallback évite tous les bugs du HTML5 drag API dans un drawer
-    // position:fixed avec overflow-y:auto
-    forceFallback: true,
-    fallbackClass: 'equip-dragging',
-    fallbackOnBody: true,   // clone appendé au body → jamais clipé
-    fallbackTolerance: 3,   // évite les micro-drags accidentels
-    scroll: true,
-    scrollSensitivity: 60,
-    scrollSpeed: 10,
-    onEnd: async evt => {
-      if (evt.oldIndex === evt.newIndex) return;
-      const rows = container.querySelectorAll('.equip-drag-row');
-      const ids  = Array.from(rows).map(r => parseInt(r.dataset.id));
-      try {
-        for (let i = 0; i < ids.length; i++) {
-          await apiFetch(`/api/equipment/${ids[i]}/order`, true, 'PUT', { order_index: i + 1 });
-        }
-        await adminLoadEquip();
-        await refreshPage();
-      } catch (err) { toast(err.message, 'error'); }
+  try {
+    for (let i = 0; i < list.length; i++) {
+      await apiFetch(`/api/equipment/${list[i].id}/order`, true, 'PUT', { order_index: i + 1 });
     }
-  });
-}
+    await adminLoadEquip();
+    await refreshPage();
+  } catch (err) { toast(err.message, 'error'); }
+};
 
 window.openEquipForm = function(category) {
   const cat = category || 'equipement';

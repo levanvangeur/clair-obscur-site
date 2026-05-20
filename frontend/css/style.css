@@ -1283,35 +1283,51 @@ select.adm-input { cursor: pointer; }
 .adm-btn-danger-xs { padding: 0.25rem 0.5rem; font-size: 0.7rem; background: rgba(224,85,85,0.08); border: 1px solid rgba(224,85,85,0.2); color: #e05555; cursor: pointer; border-radius: 1px; display: inline-flex; align-items: center; gap: 0.25rem; font-family: inherit; transition: all 0.2s; }
 .adm-btn-danger-xs:hover { background: rgba(224,85,85,0.15); }
 
-/* ── Drag & drop équipements (SortableJS) ──────────────── */
-.equip-drag-handle {
-  font-size: 1rem;
-  line-height: 1;
-  color: var(--adm-text-dim, #44444a);
-  cursor: grab;
+/* ── Ordre équipements (boutons ↑ ↓) ───────────────────── */
+.equip-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--adm-border);
+}
+.equip-row-order {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
   flex-shrink: 0;
-  user-select: none;
-  padding: 0 4px;
-  transition: color 0.15s;
+  width: 22px;
 }
-.equip-drag-row:hover .equip-drag-handle { color: var(--adm-text-muted); }
-/* Row en cours de glissement (reste dans la liste, semi-transparent) */
-.equip-drag-row.equip-dragging {
-  opacity: 0.35;
+.equip-order-btn {
+  background: none;
+  border: none;
+  color: var(--adm-text-dim, #55555a);
+  font-size: 0.55rem;
+  line-height: 1;
+  padding: 1px 3px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: color 0.15s, background 0.15s;
 }
-/* Clone qui suit la souris (fallbackOnBody → appendé au <body>) */
-.equip-drag-row.equip-dragging.sortable-fallback {
-  opacity: 1 !important;
-  background: var(--adm-surface, #1a1a1e);
-  border: 1px solid var(--gold);
-  border-radius: 4px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  cursor: grabbing !important;
+.equip-order-btn:hover:not(:disabled) {
+  color: var(--gold);
+  background: rgba(201,169,110,0.1);
 }
-/* Placeholder SortableJS : montre où l'item va atterrir */
-.equip-drag-row.equip-drag-ghost {
-  opacity: 0.15;
-  border-top: 2px dashed var(--gold) !important;
+.equip-order-btn:disabled { opacity: 0.2; cursor: default; }
+.equip-order-num {
+  font-size: 0.6rem;
+  color: var(--adm-text-dim, #55555a);
+  font-variant-numeric: tabular-nums;
+}
+.equip-row-name {
+  flex: 1;
+  font-size: 0.83rem;
+  font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Upload zone admin ─────────────────────────────────── */
