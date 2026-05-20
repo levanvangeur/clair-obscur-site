@@ -67,6 +67,8 @@ function updateMeta(data) {
   document.getElementById('page-desc').setAttribute('content', data.tagline || '');
 }
 
+let _heroTimer = null;
+
 function renderHero(data) {
   const siteName = data.settings?.site_name || data.name;
   document.getElementById('nav-logo').textContent = siteName;
@@ -74,12 +76,51 @@ function renderHero(data) {
   document.getElementById('hero-eyebrow').textContent = 'Bienvenue au';
   document.getElementById('hero-title').textContent = data.name;
   document.getElementById('hero-tagline').textContent = data.tagline || '';
-  if (data.main_image) {
-    const bg = document.getElementById('hero-bg');
-    const img = new Image();
-    img.onload = () => { bg.style.backgroundImage = `url(/uploads/${data.main_image})`; bg.classList.add('loaded'); };
-    img.src = `/uploads/${data.main_image}`;
-  }
+
+  // Priorité : hero_images (slideshow). Fallback : main_image seul.
+  const heroImgs = data.hero_images && data.hero_images.length
+    ? data.hero_images
+    : data.main_image ? [{ filename: data.main_image }] : [];
+
+  startHeroSlideshow(heroImgs);
+}
+
+function startHeroSlideshow(images) {
+  if (_heroTimer) { clearInterval(_heroTimer); _heroTimer = null; }
+
+  const hero = document.getElementById('hero');
+  hero.querySelectorAll('.hero-slide').forEach(s => s.remove());
+
+  if (!images.length) return;
+
+  const overlay = document.getElementById('hero-overlay');
+
+  // Créer un élément par photo, insérés AVANT l'overlay
+  const slides = images.map((img, i) => {
+    const div = document.createElement('div');
+    div.className = 'hero-slide' + (i === 0 ? ' active' : '');
+    div.style.backgroundImage = `url(/uploads/${img.filename})`;
+    hero.insertBefore(div, overlay);
+    return div;
+  });
+
+  // Précharger toutes les images en arrière-plan
+  images.forEach(img => { const i = new Image(); i.src = `/uploads/${img.filename}`; });
+
+  if (slides.length < 2) return; // une seule photo → pas besoin du timer
+
+  let current = 0;
+  _heroTimer = setInterval(() => {
+    const prev = current;
+    current = (current + 1) % slides.length;
+
+    slides[current].classList.add('active');   // nouvelle slide monte
+    slides[prev].classList.add('leaving');      // ancienne reste visible dessous
+    slides[prev].classList.remove('active');
+
+    // Une fois la transition terminée, on masque l'ancienne slide
+    setTimeout(() => slides[prev].classList.remove('leaving'), 2200);
+  }, 5500); // délai entre chaque photo
 }
 
 
@@ -603,11 +644,25 @@ async function adminLoadInfo() {
   document.getElementById('dp-tagline').value = propertyData.tagline || '';
   document.getElementById('dp-desc').value    = propertyData.description || '';
   document.getElementById('dp-active').value  = String(propertyData.active ?? 1);
-  if (propertyData.main_image) {
-    document.getElementById('dp-img-preview').innerHTML =
-      `<img src="/uploads/${propertyData.main_image}?t=${Date.now()}" style="max-height:140px;border:1px solid var(--adm-border);">`;
-  }
+  adminLoadHeroGrid();
   adminLoadGallery();
+}
+
+async function adminLoadHeroGrid() {
+  const grid = document.getElementById('dp-hero-grid');
+  if (!grid) return;
+  try {
+    const data = await apiFetch(`/api/properties/${PROPERTY_ID}`, false);
+    const imgs = data.hero_images || [];
+    grid.innerHTML = imgs.length
+      ? imgs.map(img => `
+          <div style="position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--adm-border);border-radius:3px;">
+            <img src="/uploads/${esc(img.filename)}" style="width:100%;height:100%;object-fit:cover;">
+            <button onclick="adminDeleteHeroImage(${img.id})"
+              style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.75);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
+          </div>`).join('')
+      : '<p style="font-size:0.75rem;color:var(--adm-text-muted);grid-column:1/-1;">Aucune photo d\'accueil.</p>';
+  } catch {}
 }
 
 async function adminLoadGallery() {
@@ -662,16 +717,29 @@ window.adminSaveProp = async function(e) {
   } catch (err) { toast(err.message, 'error'); }
 };
 
-window.adminUploadPropImage = async function(input) {
-  if (!input.files[0]) return;
-  const fd = new FormData();
-  fd.append('image', input.files[0]);
+window.adminUploadHeroImages = async function(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  toast(`Upload de ${files.length} photo(s)…`, 'info');
   try {
-    toast('Upload en cours…', 'info');
-    const res = await apiFetchForm(`/api/properties/${PROPERTY_ID}/image`, fd);
-    document.getElementById('dp-img-preview').innerHTML =
-      `<img src="/uploads/${res.filename}?t=${Date.now()}" style="max-height:140px;border:1px solid var(--adm-border);">`;
-    toast('Image mise à jour');
+    for (const file of files) {
+      const fd = new FormData();
+      fd.append('image', file);
+      await apiFetchForm(`/api/properties/${PROPERTY_ID}/hero`, fd);
+    }
+    toast(files.length > 1 ? `${files.length} photos ajoutées` : 'Photo ajoutée');
+    await adminLoadHeroGrid();
+    await refreshPage();
+  } catch (err) { toast(err.message, 'error'); }
+  input.value = '';
+};
+
+window.adminDeleteHeroImage = async function(imgId) {
+  if (!confirm('Supprimer cette photo d\'accueil ?')) return;
+  try {
+    await apiFetch(`/api/properties/${PROPERTY_ID}/hero/${imgId}`, true, 'DELETE');
+    toast('Photo supprimée');
+    await adminLoadHeroGrid();
     await refreshPage();
   } catch (err) { toast(err.message, 'error'); }
 };

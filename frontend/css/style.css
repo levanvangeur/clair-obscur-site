@@ -140,8 +140,34 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   transform: scale(1.05);
   transition: transform 8s ease;
 }
-
 #hero-bg.loaded { transform: scale(1); }
+
+/* ── Slideshow hero (plusieurs photos) ─────────────────── */
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  z-index: 0;
+  transition: opacity 2s ease;
+  will-change: opacity;
+}
+/* Slide visible — Ken Burns doux */
+.hero-slide.active {
+  opacity: 1;
+  z-index: 2;
+  animation: heroKenBurns 9s ease forwards;
+}
+/* Slide sortante — reste visible le temps que la suivante apparaisse */
+.hero-slide.leaving {
+  opacity: 1;
+  z-index: 1;
+}
+@keyframes heroKenBurns {
+  from { transform: scale(1.06); }
+  to   { transform: scale(1);    }
+}
 
 #hero-overlay {
   position: absolute;

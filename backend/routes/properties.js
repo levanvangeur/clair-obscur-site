@@ -51,7 +51,8 @@ router.get('/:id', (req, res) => {
     room.equipment = db.prepare('SELECT * FROM equipment WHERE room_id = ? ORDER BY order_index ASC, id ASC').all(room.id);
   });
 
-  prop.gallery  = db.prepare('SELECT * FROM property_gallery WHERE property_id = ? ORDER BY order_index ASC, id ASC').all(prop.id);
+  prop.gallery      = db.prepare('SELECT * FROM property_gallery WHERE property_id = ? ORDER BY order_index ASC, id ASC').all(prop.id);
+  prop.hero_images  = db.prepare('SELECT * FROM property_hero_images WHERE property_id = ? ORDER BY order_index ASC, id ASC').all(prop.id);
   const rules   = db.prepare('SELECT * FROM rules WHERE property_id = ?').get(prop.id);
   const bookings = db.prepare('SELECT * FROM bookings WHERE property_id = ? AND is_active = 1 ORDER BY id ASC').all(prop.id);
   const faq          = db.prepare('SELECT * FROM faq WHERE property_id = ? ORDER BY order_index ASC, id ASC').all(prop.id);
@@ -96,7 +97,35 @@ router.put('/:id', authenticateAdmin, (req, res) => {
   res.json({ message: 'Logement mis à jour' });
 });
 
-// POST /api/properties/:id/image  — image principale (hero)
+// POST /api/properties/:id/hero  — ajoute une photo au slideshow d'accueil
+router.post('/:id/hero', authenticateAdmin, upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu' });
+  const destDir = path.join(__dirname, '../../uploads/hero');
+  fs.mkdirSync(destDir, { recursive: true });
+  const ext      = path.extname(req.file.originalname).toLowerCase();
+  const filename = `hero-${Date.now()}${ext}`;
+  fs.renameSync(req.file.path, path.join(destDir, filename));
+  const db = getDb();
+  const { m } = db.prepare('SELECT COALESCE(MAX(order_index),0) AS m FROM property_hero_images WHERE property_id = ?').get(req.params.id);
+  const result = run(db,
+    'INSERT INTO property_hero_images (property_id, filename, order_index) VALUES (?, ?, ?)',
+    req.params.id, `hero/${filename}`, m + 1);
+  res.status(201).json({ id: result.lastInsertRowid, filename: `hero/${filename}` });
+});
+
+// DELETE /api/properties/:id/hero/:imgId
+router.delete('/:id/hero/:imgId', authenticateAdmin, (req, res) => {
+  const db  = getDb();
+  const img = db.prepare('SELECT filename FROM property_hero_images WHERE id = ? AND property_id = ?').get(req.params.imgId, req.params.id);
+  if (img) {
+    run(db, 'DELETE FROM property_hero_images WHERE id = ?', req.params.imgId);
+    const fp = path.join(__dirname, '../../uploads', img.filename);
+    if (fs.existsSync(fp)) fs.unlinkSync(fp);
+  }
+  res.json({ message: 'ok' });
+});
+
+// POST /api/properties/:id/image  — image principale (hero) — rétrocompat
 router.post('/:id/image', authenticateAdmin, upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu' });
   const destDir = path.join(__dirname, '../../uploads/properties');

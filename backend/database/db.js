@@ -147,6 +147,29 @@ function initDatabase() {
   try { db.exec('ALTER TABLE rules ADD COLUMN parking_instructions TEXT'); } catch(_) {}
   try { db.exec('ALTER TABLE rules ADD COLUMN places_to_discover TEXT'); } catch(_) {}
 
+  // Photos hero (slideshow accueil)
+  try {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS property_hero_images (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        property_id INTEGER NOT NULL,
+        filename    TEXT NOT NULL,
+        order_index INTEGER DEFAULT 0,
+        FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+      )
+    `);
+  } catch(_) {}
+  // Migration : si main_image existe et qu'aucune hero image n'est encore enregistrée
+  try {
+    const props = db.prepare('SELECT id, main_image FROM properties WHERE main_image IS NOT NULL').all();
+    props.forEach(p => {
+      const { c } = db.prepare('SELECT COUNT(*) as c FROM property_hero_images WHERE property_id = ?').get(p.id);
+      if (c === 0) {
+        db.prepare('INSERT INTO property_hero_images (property_id, filename, order_index) VALUES (?, ?, 1)').run(p.id, p.main_image);
+      }
+    });
+  } catch(_) {}
+
   seedIfEmpty(db);
   console.log('✅ Base de données initialisée');
 }
