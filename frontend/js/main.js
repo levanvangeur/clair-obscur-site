@@ -702,9 +702,9 @@ function renderEquipAdminList(items, containerId, category) {
   if (!el) return;
   if (!items.length) { el.innerHTML = '<p style="font-size:0.78rem;color:var(--adm-text-dim,#55555a);">Aucun élément.</p>'; return; }
   el.innerHTML = items.map(e => `
-    <div class="equip-drag-row" draggable="true" data-id="${e.id}" data-category="${e.category||'equipement'}"
+    <div class="equip-drag-row" data-id="${e.id}" data-category="${e.category||'equipement'}"
          style="display:flex;align-items:center;gap:0.5rem;padding:0.55rem 0;border-bottom:1px solid var(--adm-border);">
-      <span class="equip-drag-handle" title="Glisser">⠿</span>
+      <span class="equip-drag-handle" title="Glisser pour réordonner">⠿</span>
       <span style="color:var(--gold);flex-shrink:0;">${iconSvg(e.icon, 14)}</span>
       <p style="flex:1;font-size:0.83rem;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(e.name)}</p>
       <div style="display:flex;gap:0.3rem;flex-shrink:0;">
@@ -717,75 +717,31 @@ function renderEquipAdminList(items, containerId, category) {
 
 function setupEquipDragDrop(containerId, category) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container || !window.Sortable) return;
 
-  // dragSrcId partagé par toutes les rows du même container via closure
-  let dragSrcId = null;
+  // Détruire l'instance précédente pour éviter les listeners en double
+  const existing = Sortable.get(container);
+  if (existing) existing.destroy();
 
-  container.querySelectorAll('.equip-drag-row').forEach(row => {
-
-    // ── Démarrage ──────────────────────────────────────────────
-    row.addEventListener('dragstart', e => {
-      dragSrcId = parseInt(row.dataset.id);
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', String(dragSrcId)); // requis Firefox
-      setTimeout(() => row.classList.add('equip-dragging'), 0);
-    });
-
-    row.addEventListener('dragend', () => {
-      row.classList.remove('equip-dragging');
-      container.querySelectorAll('.equip-drag-over')
-               .forEach(r => r.classList.remove('equip-drag-over'));
-    });
-
-    // ── Survol ─────────────────────────────────────────────────
-    row.addEventListener('dragover', e => {
-      e.preventDefault();                   // autorise le drop
-      e.dataTransfer.dropEffect = 'move';
-      if (parseInt(row.dataset.id) !== dragSrcId) {
-        row.classList.add('equip-drag-over');
-      }
-    });
-
-    // Retire le highlight seulement si on quitte vraiment la row
-    // (et non en passant sur un enfant)
-    row.addEventListener('dragleave', e => {
-      if (!row.contains(e.relatedTarget)) {
-        row.classList.remove('equip-drag-over');
-      }
-    });
-
-    // ── Dépôt ──────────────────────────────────────────────────
-    row.addEventListener('drop', async e => {
-      e.preventDefault();
-      e.stopPropagation();
-      row.classList.remove('equip-drag-over');
-
-      const targetId = parseInt(row.dataset.id);
-      if (!dragSrcId || targetId === dragSrcId) return;
-
-      // Copie filtrée par catégorie — on réordonne dans cette copie
-      const cat = currentEquipList.filter(
-        i => (i.category || 'equipement') === category
-      );
-      const fi = cat.findIndex(i => i.id === dragSrcId);
-      const ti = cat.findIndex(i => i.id === targetId);
-      if (fi === -1 || ti === -1) return;
-
-      const [mv] = cat.splice(fi, 1);
-      cat.splice(ti, 0, mv);
-
+  Sortable.create(container, {
+    animation: 120,
+    handle: '.equip-drag-handle',
+    draggable: '.equip-drag-row',
+    ghostClass: 'equip-drag-ghost',
+    dragClass: 'equip-dragging',
+    onEnd: async evt => {
+      if (evt.oldIndex === evt.newIndex) return;
+      // Lire l'ordre directement depuis le DOM (SortableJS l'a déjà mis à jour)
+      const rows = container.querySelectorAll('.equip-drag-row');
+      const ids  = Array.from(rows).map(r => parseInt(r.dataset.id));
       try {
-        for (let i = 0; i < cat.length; i++) {
-          await apiFetch(
-            `/api/equipment/${cat[i].id}/order`, true, 'PUT',
-            { order_index: i + 1 }
-          );
+        for (let i = 0; i < ids.length; i++) {
+          await apiFetch(`/api/equipment/${ids[i]}/order`, true, 'PUT', { order_index: i + 1 });
         }
         await adminLoadEquip();
         await refreshPage();
       } catch (err) { toast(err.message, 'error'); }
-    });
+    }
   });
 }
 
