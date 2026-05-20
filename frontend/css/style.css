@@ -953,50 +953,46 @@ footer p { font-size: 0.78rem; color: var(--text-dim); }
   position: relative;
 }
 
-/* Ligne verticale reliant les étapes */
+/* Ligne verticale reliant les points */
 .checkin-steps::before {
   content: '';
   position: absolute;
-  left: 12px;
-  top: 26px;
-  bottom: 14px;
+  left: 5px;
+  top: 20px;
+  bottom: 10px;
   width: 1px;
-  background: var(--border);
+  background: linear-gradient(to bottom, var(--gold), transparent);
+  opacity: 0.35;
 }
 
 .checkin-step {
   display: grid;
-  grid-template-columns: 26px 1fr;
+  grid-template-columns: 22px 1fr;
   gap: 1rem;
   align-items: flex-start;
-  padding-bottom: 1.5rem;
+  padding-bottom: 1.4rem;
   position: relative;
 }
 
 .checkin-step:last-child { padding-bottom: 0; }
 
-.checkin-step-num {
-  width: 26px;
-  height: 26px;
-  border: 1px solid var(--gold);
-  color: var(--gold);
-  font-family: var(--font-display);
-  font-size: 0.7rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Joli point doré */
+.checkin-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--gold);
   flex-shrink: 0;
-  background: var(--bg);
+  margin-top: 5px;
   position: relative;
   z-index: 1;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent);
 }
 
 .checkin-step-text {
   font-size: 0.88rem;
   color: var(--text);
   line-height: 1.6;
-  padding-top: 4px;
 }
 
 /* Carte info générique (arrivée, départ, stationnement, etc.) */

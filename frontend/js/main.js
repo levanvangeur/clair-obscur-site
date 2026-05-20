@@ -142,9 +142,9 @@ function renderCheckinBlock(time, text) {
   const lines = (text || '').split('\n').map(l => l.trim()).filter(Boolean);
   const timeHtml = `<div class="checkin-time">${esc(time)}</div>`;
   if (!lines.length) return timeHtml;
-  const stepsHtml = lines.map((line, i) => `
+  const stepsHtml = lines.map(line => `
     <div class="checkin-step">
-      <div class="checkin-step-num">${i + 1}</div>
+      <span class="checkin-dot"></span>
       <p class="checkin-step-text">${esc(line)}</p>
     </div>`).join('');
   return `${timeHtml}<div class="checkin-steps">${stepsHtml}</div>`;
