@@ -47,7 +47,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 function renderAll(data) {
   updateMeta(data);
   renderHero(data);
-  renderBooking(data, data.bookings);
   renderArrivee(data.rules);
   renderDepart(data.rules);
   renderWifi(data.rules);
@@ -242,16 +241,6 @@ function renderReglement(rules) {
   let html = '';
   if (rules.house_rules) {
     html += `<div class="info-card reveal"><p class="info-card-text">${esc(rules.house_rules).replace(/\n/g,'<br>')}</p></div>`;
-  }
-  if (rules.trash_instructions) {
-    html += `
-      <div class="info-card reveal" style="margin-top:1.5rem;">
-        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
-          <i data-lucide="trash-2" style="width:18px;height:18px;color:var(--gold);"></i>
-          <p class="text-eyebrow" style="margin:0;">Poubelles</p>
-        </div>
-        <p class="info-card-text">${esc(rules.trash_instructions).replace(/\n/g,'<br>')}</p>
-      </div>`;
   }
   if (!html) html = '<p style="color:var(--text-muted);font-size:0.9rem;">Règlement à configurer.</p>';
   c.innerHTML = html;
