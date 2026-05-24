@@ -82,7 +82,7 @@ router.put('/:propertyId', authenticateAdmin, (req, res) => {
     check_in_time, check_out_time,
     check_in_instructions, check_out_instructions,
     trash_instructions, wifi_name, wifi_password, house_rules,
-    parking_instructions, places_to_discover
+    parking_instructions, places_to_discover, key_box_code
   } = req.body;
 
   const db = getDb();
@@ -93,25 +93,26 @@ router.put('/:propertyId', authenticateAdmin, (req, res) => {
       check_in_time = ?, check_out_time = ?,
       check_in_instructions = ?, check_out_instructions = ?,
       trash_instructions = ?, wifi_name = ?, wifi_password = ?, house_rules = ?,
-      parking_instructions = ?, places_to_discover = ?
+      parking_instructions = ?, places_to_discover = ?, key_box_code = ?
       WHERE property_id = ?`,
       check_in_time || '15:00', check_out_time || '11:00',
       check_in_instructions || '', check_out_instructions || '',
       trash_instructions || '', wifi_name || '', wifi_password || '', house_rules || '',
-      parking_instructions || '', places_to_discover || '',
+      parking_instructions || '', places_to_discover || '', key_box_code || '',
       req.params.propertyId
     );
   } else {
     run(db, `INSERT INTO rules
       (property_id, check_in_time, check_out_time,
        check_in_instructions, check_out_instructions,
-       trash_instructions, wifi_name, wifi_password, house_rules, parking_instructions, places_to_discover)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       trash_instructions, wifi_name, wifi_password, house_rules,
+       parking_instructions, places_to_discover, key_box_code)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       req.params.propertyId,
       check_in_time || '15:00', check_out_time || '11:00',
       check_in_instructions || '', check_out_instructions || '',
       trash_instructions || '', wifi_name || '', wifi_password || '', house_rules || '',
-      parking_instructions || '', places_to_discover || ''
+      parking_instructions || '', places_to_discover || '', key_box_code || ''
     );
   }
 

@@ -146,6 +146,9 @@ function initDatabase() {
   db.exec('UPDATE equipment SET order_index = id WHERE order_index = 0');
   try { db.exec('ALTER TABLE rules ADD COLUMN parking_instructions TEXT'); } catch(_) {}
   try { db.exec('ALTER TABLE rules ADD COLUMN places_to_discover TEXT'); } catch(_) {}
+  try { db.exec('ALTER TABLE rules ADD COLUMN key_box_code TEXT'); } catch(_) {}
+  try { db.exec('ALTER TABLE properties ADD COLUMN address TEXT'); } catch(_) {}
+  try { db.exec('ALTER TABLE properties ADD COLUMN max_guests TEXT'); } catch(_) {}
 
   // Photos hero (slideshow accueil)
   try {

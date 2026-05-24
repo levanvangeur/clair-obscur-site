@@ -1151,6 +1151,58 @@ footer p { font-size: 0.78rem; color: var(--text-dim); }
   .wifi-card { padding: 1.25rem 1.5rem; }
 }
 
+/* ── Quickinfo encadré ─────────────────────────────────────── */
+#quickinfo-bar {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: center;
+}
+#quickinfo-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+}
+.qi-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.qi-chip:last-child { border-bottom: none; }
+.qi-chip:hover { background: var(--surface); }
+.qi-chip-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.qi-chip svg { width: 14px; height: 14px; color: var(--gold); flex-shrink: 0; }
+.qi-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.qi-value {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+}
+
 /* Contact cards */
 .contact-grid {
   display: grid;

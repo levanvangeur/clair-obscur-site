@@ -90,10 +90,10 @@ router.post('/', authenticateAdmin, (req, res) => {
 
 // PUT /api/properties/:id
 router.put('/:id', authenticateAdmin, (req, res) => {
-  const { name, tagline, description, active } = req.body;
+  const { name, tagline, description, active, address, max_guests } = req.body;
   const db = getDb();
-  run(db, 'UPDATE properties SET name = ?, tagline = ?, description = ?, active = ? WHERE id = ?',
-    name, tagline, description, active ?? 1, req.params.id);
+  run(db, 'UPDATE properties SET name = ?, tagline = ?, description = ?, active = ?, address = ?, max_guests = ? WHERE id = ?',
+    name, tagline, description, active ?? 1, address || '', max_guests || '', req.params.id);
   res.json({ message: 'Logement mis à jour' });
 });
 

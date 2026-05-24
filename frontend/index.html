@@ -47,6 +47,9 @@
   </div>
 </section>
 
+<!-- ══ QUICKINFO BAR ══════════════════════════════════════════ -->
+<div id="quickinfo-bar"><div id="quickinfo-inner"></div></div>
+
 <!-- ══ ARRIVÉE + DÉPART ═══════════════════════════════════════ -->
 <section id="arrivee-depart" style="background:var(--bg);border-top:1px solid var(--border);">
   <div class="section">
@@ -293,6 +296,14 @@
           <textarea class="adm-input" id="dp-desc" rows="4" placeholder="Description détaillée…"></textarea>
         </div>
         <div class="adm-form-group">
+          <label class="adm-label">Adresse complète</label>
+          <input type="text" class="adm-input" id="dp-address" placeholder="14 Rue Denis Papin, 71600 Paray-le-Monial">
+        </div>
+        <div class="adm-form-group">
+          <label class="adm-label">Voyageurs max</label>
+          <input type="text" class="adm-input" id="dp-max-guests" placeholder="4 voyageurs max">
+        </div>
+        <div class="adm-form-group">
           <label class="adm-label">Statut</label>
           <select class="adm-input" id="dp-active">
             <option value="1">Actif</option>
@@ -391,6 +402,10 @@
       <div class="adm-form-group">
         <label class="adm-label">Heure check-in</label>
         <input type="time" class="adm-input" id="dr-checkin-time">
+      </div>
+      <div class="adm-form-group">
+        <label class="adm-label">Code boîte à clés</label>
+        <input type="text" class="adm-input" id="dr-key-box" placeholder="1234#">
       </div>
       <div class="adm-form-group">
         <label class="adm-label">Instructions <span style="font-weight:400;color:var(--adm-text-dim,#666);">— une ligne = une étape</span></label>
