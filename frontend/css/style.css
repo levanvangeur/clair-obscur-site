@@ -878,6 +878,64 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   pointer-events: all;
 }
 
+/* ── PLM Bus ───────────────────────────────────────────── */
+.plm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  min-width: 420px;
+}
+.plm-table th {
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  background: var(--surface-2);
+  color: var(--gold);
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.plm-table th:first-child { text-align: left; min-width: 200px; }
+.plm-table td {
+  padding: 0.45rem 0.75rem;
+  text-align: center;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.plm-table td:first-child { text-align: left; color: var(--text); }
+.plm-table tr:hover td { background: var(--surface-2); }
+.plm-btn {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  background: var(--surface-2);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+.plm-btn:hover { border-color: var(--gold); color: var(--gold); }
+.plm-btn-active { background: var(--gold); color: var(--bg) !important; border-color: var(--gold) !important; }
+
+/* ── Carte Leaflet ─────────────────────────────────────── */
+#map { z-index: 0; }
+.leaflet-container {
+  background: var(--surface);
+  font-family: var(--font-body);
+}
+.leaflet-popup-content-wrapper {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.leaflet-popup-tip { background: var(--surface-2); }
+.leaflet-popup-close-button { color: var(--text-muted) !important; }
+
 /* ── Footer ────────────────────────────────────────────── */
 footer {
   padding: 3rem 2rem;

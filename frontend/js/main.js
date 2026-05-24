@@ -51,11 +51,12 @@ function renderAll(data) {
   renderDepart(data.rules);
   renderWifi(data.rules);
   renderEquipements(data.rooms || []);
-  renderConfort(data.rooms || []);
   renderStationnement(data.rules);
   renderReglement(data.rules);
   renderContact(data.settings);
   renderDecouvrir(data.rules);
+  renderPLM();
+  initMap();
   setTimeout(() => lucide.createIcons(), 60);
 }
 
@@ -206,11 +207,30 @@ function renderWifi(rules) {
         </button>
       </div>
     </div>`;
-  c.innerHTML = `<div class="wifi-card reveal">
-    <div class="wifi-card-icon"><i data-lucide="wifi" style="width:28px;height:28px;color:var(--gold);"></i></div>
-    ${rules.wifi_name     ? makeCopiable(rules.wifi_name,     'Réseau') : ''}
-    ${rules.wifi_password ? makeCopiable(rules.wifi_password, 'Mot de passe') : ''}
-  </div>`;
+  const makeField = (label, value) => `
+    <div class="wifi-field reveal">
+      <p class="wifi-field-label">${label}</p>
+      <div class="wifi-field-row">
+        <span class="wifi-value">${value}</span>
+      </div>
+    </div>`;
+
+  c.innerHTML = `
+    <div class="wifi-card reveal">
+      <div class="wifi-card-icon"><i data-lucide="wifi" style="width:28px;height:28px;color:var(--gold);"></i></div>
+      ${rules.wifi_name     ? makeCopiable(rules.wifi_name,     'Réseau') : ''}
+      ${rules.wifi_password ? makeCopiable(rules.wifi_password, 'Mot de passe') : ''}
+    </div>
+    <div class="section-header reveal" style="margin-top:5rem;">
+      <p class="text-eyebrow">Literie</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Linge de maison</h2>
+    </div>
+    <div class="wifi-card reveal">
+      <div class="wifi-card-icon"><i data-lucide="shirt" style="width:28px;height:28px;color:var(--gold);"></i></div>
+      ${makeField('Linge de maison', 'Draps &amp; serviettes fournis')}
+      ${makeField('Fin de séjour', 'Merci de déposer le linge dans les panières')}
+    </div>`;
   setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
 }
 
@@ -272,6 +292,236 @@ function renderContact(settings) {
     </div>`;
   if (!phone && !email) c.innerHTML = '<p style="color:var(--text-muted);font-size:0.9rem;">Contact à configurer dans Paramètres.</p>';
   setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
+}
+
+function renderPLM() {
+  const c = document.getElementById('plm-container');
+  if (!c) return;
+
+  // Données : [nom arrêt, minutes depuis 07h00 (1er départ 07:02)]
+  // Source : Fiche horaires PLM 2024-2025 — Le Grand Charolais / Transarc
+  const arrets = [
+    ['Collège Cassin',              [2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0]],
+    ['Quai de l\'Industrie',        [null,null,1,  1,  1,  1,  1,  1,  1,  1,  1,  1]],
+    ['Anatole France',              [5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5]],
+    ['Hector Berlioz',              [6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6]],
+    ['Saint-Germain',               [7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7,  7]],
+    ['Solnin',                      [8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8]],
+    ['Solnin / Saint-Yan',          [9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9,  9]],
+    ['Prairies / Ferreull',         [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]],
+    ['École Bellevue',              [11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11]],
+    ['Paul Cambon',                 [12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12]],
+    ['Le Colombier / La Croix',     [13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13]],
+    ['Résistance / Rte de Poisson', [14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]],
+    ['Comblette',                   [16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16]],
+    ['Eaux Mortes',                 [17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17]],
+    ['Gare SNCF',                   [20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20]],
+    ['Théâtre',                     [23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23]],
+    ['La Poste',                    [25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25]],
+    ['Villeneuve',                  [26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26]],
+    ['Pré des Angles',              [28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28]],
+    ['Rond-point de Bourgogne',     [29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29]],
+    ['Stades',                      [30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]],
+    ['Cinéma Empire',               [31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31]],
+    ['Pôle Sanitaire',              [32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32]],
+    ['Champ Bossu',                 [33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33, 33]],
+    ['Les Miquets',                 [38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38, 38]],
+    ['Grand Boyère',                [40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40]],
+    ['Les Sables / FJT',            [42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42, 42]],
+    ['Lycée Astier',                [45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45, 45]],
+    ['École des Crèches',           [46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46, 46]],
+    ['Résidence Notre-Dame',        [49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49, 49]],
+    ['Cimetière',                   [51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51, 51]],
+    ['Greseul',                     [53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53]],
+    ['Pasteur',                     [55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55, 55]],
+    ['Bibliothèque',                [56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56, 56]],
+    ['Collège Cassin ⟳',           [58, 58, 58, 58, 58, 58, 58, 58, 58, 58, 58, 58]],
+  ];
+
+  // Heures de départ du 1er arrêt : 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18
+  const departs = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+
+  function fmt(h, min) {
+    if (min === null) return '—';
+    const total = h * 60 + min;
+    const hh = Math.floor(total / 60);
+    const mm = total % 60;
+    return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  }
+
+  let selectedHour = null;
+  let tableOpen = false;
+
+  function buildTable() {
+    const cols = selectedHour !== null ? [departs.indexOf(selectedHour)] : departs.map((_,i) => i);
+    const heures = cols.map(i => departs[i]);
+    return `
+      <div class="plm-panel" id="plm-panel">
+        <div style="margin-bottom:1.25rem;">
+          <p style="font-size:0.7rem;color:var(--text-dim);margin-bottom:0.6rem;letter-spacing:0.08em;text-transform:uppercase;">Filtrer par heure de départ</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">
+            <button onclick="plmFilter(null)" class="plm-btn${selectedHour===null?' plm-btn-active':''}">Tout</button>
+            ${departs.map(h => `<button onclick="plmFilter(${h})" class="plm-btn${selectedHour===h?' plm-btn-active':''}">${String(h).padStart(2,'0')}h</button>`).join('')}
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="plm-table">
+            <thead><tr>
+              <th>Arrêt</th>
+              ${heures.map(h => `<th>${String(h).padStart(2,'0')}h</th>`).join('')}
+            </tr></thead>
+            <tbody>
+              ${arrets.map(([nom, mins]) => `
+                <tr><td>${nom}</td>${cols.map(i => `<td>${fmt(departs[i], mins[i])}</td>`).join('')}</tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:1rem;font-size:0.75rem;color:var(--text-dim);">
+          ⓘ Ne circule pas les dimanches et jours fériés.
+          <a href="https://www.legrandcharolais.fr/transports-urbains.html" target="_blank" rel="noopener" style="color:var(--gold);margin-left:0.5rem;">Infos officielles ↗</a>
+        </p>
+        <button onclick="plmToggle()" style="margin-top:1.25rem;display:flex;align-items:center;gap:0.4rem;font-size:0.75rem;color:var(--text-dim);cursor:pointer;background:none;border:none;padding:0;">
+          <i data-lucide="chevron-up" style="width:14px;height:14px;"></i> Masquer les horaires
+        </button>
+      </div>`;
+  }
+
+  function render() {
+    c.innerHTML = `
+      <div class="plm-summary">
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:0.6rem;">
+            <i data-lucide="bus" style="width:20px;height:20px;color:var(--gold);"></i>
+            <div>
+              <p style="font-size:0.85rem;color:var(--text);font-weight:500;">Navette PLM</p>
+              <p style="font-size:0.75rem;color:var(--text-muted);">Circuit urbain · Lun–Sam · 07h–19h · 1 départ / heure · 35 arrêts</p>
+            </div>
+          </div>
+          <button onclick="plmToggle()" class="plm-btn plm-btn-open" style="margin-left:auto;">
+            <i data-lucide="clock" style="width:13px;height:13px;"></i>
+            ${tableOpen ? 'Masquer les horaires' : 'Afficher les horaires'}
+          </button>
+        </div>
+      </div>
+      ${tableOpen ? buildTable() : ''}`;
+    setTimeout(() => lucide.createIcons(), 30);
+  }
+
+  window.plmToggle = function() { tableOpen = !tableOpen; selectedHour = null; render(); };
+  window.plmFilter = function(h) { selectedHour = h; render(); };
+
+  render();
+}
+
+function initMap() {
+  if (!document.getElementById('map')) return;
+  if (window._mapInstance) { window._mapInstance.remove(); window._mapInstance = null; }
+
+  const lat = 46.4463341;
+  const lng = 4.1166550;
+
+  const map = L.map('map', { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
+  window._mapInstance = map;
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  // ── Parc du Moulin Liron — polygone vert ──────────────────
+  const parcCoords = [[46.445276,4.1218369],[46.4455945,4.1221852],[46.445694,4.1221947],[46.4457543,4.1221909],[46.4458014,4.1221397],[46.445865,4.1220784],[46.4459305,4.1220224],[46.4459887,4.1219914],[46.4460326,4.121986],[46.4461144,4.1220047],[46.4461637,4.1220278],[46.4462284,4.1220638],[46.4462506,4.1221036],[46.446274,4.1221538],[46.4462975,4.1221857],[46.4463768,4.1223396],[46.4464465,4.1224523],[46.4465252,4.1224948],[46.446673,4.1224143],[46.4470537,4.1212234],[46.4472053,4.120988],[46.4481557,4.1202964],[46.4482698,4.1202632],[46.448316,4.1204241],[46.4484269,4.1207433],[46.448669,4.1211322],[46.4479057,4.1222105],[46.4475406,4.1227561],[46.4474677,4.1228649],[46.4473829,4.1230567],[46.4473552,4.1231399],[46.4473071,4.1234349],[46.4472665,4.1238077],[46.4472387,4.124253],[46.4472369,4.1243925],[46.4472794,4.1245722],[46.4474661,4.1250201],[46.447516,4.1251783],[46.4475474,4.1253634],[46.4475344,4.12546],[46.4474864,4.125586],[46.4473792,4.1257497],[46.44715,4.1260367],[46.4470706,4.1261654],[46.4469948,4.1262298],[46.4468469,4.1263049],[46.4467804,4.1263853],[46.4466381,4.1265248],[46.4464607,4.1266133],[46.4462241,4.1267528],[46.446089,4.1268856],[46.4458582,4.127131],[46.4457898,4.1272329],[46.4457231,4.1273657],[46.445627,4.1274703],[46.4455494,4.127532],[46.4453812,4.1275293],[46.4452001,4.1274891],[46.4450487,4.1274368],[46.4448935,4.1275467],[46.4447826,4.1277238],[46.4446754,4.1279249],[46.4446308,4.1280926],[46.4446142,4.1282696],[46.4445791,4.1283876],[46.4444811,4.1285083],[46.4443333,4.1286236],[46.444193,4.1286813],[46.444071,4.1286599],[46.4439527,4.1286277],[46.4438307,4.1286116],[46.4436125,4.1287014],[46.443497,4.128727],[46.443466,4.128762],[46.443356,4.128938],[46.4432153,4.1287081],[46.4432659,4.1284337],[46.4435756,4.1271473],[46.4439091,4.1261017],[46.4445363,4.1241539],[46.445276,4.1218369]];
+  L.polygon(parcCoords, {
+    color: '#2d7a3a',
+    weight: 1.5,
+    fillColor: '#4a9e5c',
+    fillOpacity: 0.45,
+    interactive: false,
+  }).addTo(map);
+
+  // ── Voie ferrée — ligne blanche semi-transparente par-dessus ──
+  const voieFerree = [
+    // Tronçon près de l'appartement
+    [[46.4470783,4.1135719],[46.4468567,4.1141029],[46.4466767,4.1145452],[46.4465478,4.1148677],[46.4464132,4.1152053],[46.4462916,4.1154982],[46.4460820,4.1160297],[46.4458929,4.1165072],[46.4457527,4.1168593],[46.4456302,4.1171437]],
+    // Tronçon vers l'est
+    [[46.4450129,4.1186631],[46.4449753,4.1187588],[46.4449077,4.1189131],[46.4447152,4.1193866],[46.4446633,4.1195119],[46.4444050,4.1201453],[46.4440171,4.1210516],[46.4437993,4.1215543],[46.4435763,4.1220895],[46.4434686,4.1223770],[46.4426986,4.1242775],[46.4425674,4.1246196]],
+  ];
+  voieFerree.forEach(coords => {
+    L.polyline(coords, {
+      color: '#d4cfc8',
+      weight: 8,
+      opacity: 0.55,
+      interactive: false,
+    }).addTo(map);
+  });
+
+  // ── Marqueur appartement ──────────────────────────────────
+  const icon = L.divIcon({
+    html: `<div style="
+      background:#c9a96e;
+      width:16px;height:16px;
+      border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);
+      border:2px solid #fff;
+      box-shadow:0 2px 8px rgba(0,0,0,0.5);
+    "></div>`,
+    className: '',
+    iconSize: [18, 18],
+    iconAnchor: [9, 18],
+    popupAnchor: [0, -20],
+  });
+
+  const apptMarker = L.marker([lat, lng], { icon })
+    .addTo(map)
+    .bindPopup(`
+      <div style="font-family:Inter,sans-serif;font-size:0.85rem;line-height:1.5;min-width:160px;">
+        <strong style="font-size:0.95rem;">Clair-Obscur</strong><br>
+        14 Rue Denis Papin<br>
+        71600 Paray-le-Monial
+      </div>
+    `, { maxWidth: 220 })
+    .openPopup();
+
+  // ── Parkings gratuits à proximité ────────────────────────
+  const parkingIcon = L.divIcon({
+    html: `<div style="
+      background:#3a7bd5;
+      color:#fff;
+      width:22px;height:22px;
+      border-radius:4px;
+      border:2px solid #fff;
+      box-shadow:0 2px 6px rgba(0,0,0,0.45);
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;font-weight:700;font-family:Inter,sans-serif;
+      line-height:1;
+    ">P</div>`,
+    className: '',
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+    popupAnchor: [0, -14],
+  });
+
+  const parkings = [
+    { lat: 46.4470209, lng: 4.1170056, dist: '~80 m',  label: 'Parking gratuit' },
+    { lat: 46.4455727, lng: 4.1153375, dist: '~130 m', label: 'Parking gratuit' },
+    { lat: 46.4473939, lng: 4.1138781, dist: '~245 m', label: 'Parking gratuit' },
+    { lat: 46.4475897, lng: 4.1204659, dist: '~325 m', label: 'Parking gratuit' },
+  ];
+
+  parkings.forEach(p => {
+    L.marker([p.lat, p.lng], { icon: parkingIcon })
+      .addTo(map)
+      .bindPopup(`
+        <div style="font-family:Inter,sans-serif;font-size:0.85rem;line-height:1.5;">
+          <strong style="color:#3a7bd5;">P</strong> ${p.label}<br>
+          <span style="font-size:0.78rem;color:#888;">Gratuit · ${p.dist} à pied</span>
+        </div>
+      `, { maxWidth: 200 });
+  });
+
+  // Ajuste le zoom pour englober l'appartement + les parkings
+  const allPoints = [[lat, lng], ...parkings.map(p => [p.lat, p.lng])];
+  map.fitBounds(allPoints, { padding: [45, 45], maxZoom: 17 });
 }
 
 function renderDecouvrir(rules) {
