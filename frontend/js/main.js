@@ -67,31 +67,56 @@ function renderQuickInfo(data) {
   const r = data.rules    || {};
   const s = data.settings || {};
 
-  const fmtTime = t => t ? t.replace(':', 'h') : null;
+  const fmtTime   = t => t ? t.replace(':', 'h') : null;
   const firstLine = txt => txt ? txt.split('\n').map(l => l.trim()).filter(Boolean)[0] || null : null;
+  const scroll    = anchor => `event.preventDefault();document.querySelector('${anchor}')?.scrollIntoView({behavior:'smooth'})`;
+
+  const checkin  = fmtTime(r.check_in_time);
+  const checkout = fmtTime(r.check_out_time);
 
   const chips = [
-    { icon: 'log-in',  label: 'Arrivée',       value: fmtTime(r.check_in_time),                                    anchor: '#arrivee-depart' },
-    { icon: 'key',     label: 'Boîte à clés',  value: r.key_box_code || null,                                      anchor: '#arrivee-depart' },
-    { icon: 'map-pin', label: 'Adresse',        value: data.address   || null,                                      anchor: '#localisation'   },
-    { icon: 'car',     label: 'Parking',        value: firstLine(r.parking_instructions),                           anchor: '#stationnement'  },
-    { icon: 'wifi',    label: 'Wi-Fi',          value: r.wifi_name    || null,                                      anchor: '#wifi'           },
-    { icon: 'log-out', label: 'Départ',         value: fmtTime(r.check_out_time),                                   anchor: '#arrivee-depart' },
-    { icon: 'phone',   label: 'Contact',        value: s.help_phone   || null,                                      anchor: '#contact'        },
-    { icon: 'users',   label: 'Voyageurs max',  value: data.max_guests || null,                                     anchor: null              },
+    { icon: 'car',   label: 'Parking', value: firstLine(r.parking_instructions), anchor: '#stationnement' },
+    { icon: 'wifi',  label: 'Wi-Fi',   value: r.wifi_name || null,   subvalue: r.wifi_password || null, anchor: '#wifi' },
+    { icon: 'phone', label: 'Contact', value: s.help_phone || null,               anchor: '#contact'       },
   ].filter(c => c.value);
 
-  if (!chips.length) { bar.innerHTML = ''; return; }
+  if (!checkin && !checkout && !chips.length) { bar.innerHTML = ''; return; }
 
-  bar.innerHTML = chips.map(c => `
-    <a class="qi-chip" href="${c.anchor || 'javascript:void(0)'}"
-       onclick="${c.anchor ? `event.preventDefault();document.querySelector('${c.anchor}')?.scrollIntoView({behavior:'smooth'})` : ''}">
-      <div class="qi-chip-left">
+  let html = '';
+
+  if (checkin || checkout) {
+    const both = checkin && checkout;
+    html += `<div class="qi-time-pair${both ? '' : ' qi-time-pair--single'}">`;
+    if (checkin) html += `
+      <a class="qi-time-cell" href="#arrivee-depart" onclick="${scroll('#arrivee-depart')}">
+        <i data-lucide="log-in" class="qi-time-icon" style="width:17px;height:17px;"></i>
+        <span class="qi-time-label">Arrivée</span>
+        <span class="qi-time-value">${esc(checkin)}</span>
+      </a>`;
+    if (both) html += `<div class="qi-time-sep"></div>`;
+    if (checkout) html += `
+      <a class="qi-time-cell" href="#arrivee-depart" onclick="${scroll('#arrivee-depart')}">
+        <i data-lucide="log-out" class="qi-time-icon" style="width:17px;height:17px;"></i>
+        <span class="qi-time-label">Départ</span>
+        <span class="qi-time-value">${esc(checkout)}</span>
+      </a>`;
+    html += `</div>`;
+  }
+
+  html += chips.map(c => `
+    <a class="qi-chip" href="${c.anchor}" onclick="${scroll(c.anchor)}">
+      <div class="qi-chip-icon">
         <i data-lucide="${c.icon}"></i>
-        <span class="qi-label">${c.label}</span>
       </div>
-      <span class="qi-value">${esc(c.value)}</span>
+      <div class="qi-chip-content">
+        <div class="qi-label">${c.label}</div>
+        <div class="qi-value">${esc(c.value)}</div>
+        ${c.subvalue ? `<div class="qi-subvalue">${esc(c.subvalue)}</div>` : ''}
+      </div>
+      <i data-lucide="chevron-right" class="qi-arrow" style="width:14px;height:14px;"></i>
     </a>`).join('');
+
+  bar.innerHTML = html;
   setTimeout(() => lucide.createIcons({ nodes: bar.querySelectorAll('[data-lucide]') }), 30);
 }
 
@@ -155,7 +180,7 @@ function startHeroSlideshow(images) {
 
     // Une fois la transition terminée, on masque l'ancienne slide
     setTimeout(() => slides[prev].classList.remove('leaving'), 2200);
-  }, 5500); // délai entre chaque photo
+  }, 3800); // délai entre chaque photo
 }
 
 
@@ -262,7 +287,7 @@ function renderWifi(rules) {
       <h2 class="text-section-title">Linge de maison</h2>
     </div>
     <div class="wifi-card reveal">
-      <div class="wifi-card-icon"><i data-lucide="shirt" style="width:28px;height:28px;color:var(--gold);"></i></div>
+      <div class="wifi-card-icon"><i data-lucide="bed-double" style="width:28px;height:28px;color:var(--gold);"></i></div>
       ${makeField('Linge de maison', 'Draps &amp; serviettes fournis')}
       ${makeField('Fin de séjour', 'Merci de déposer le linge dans les panières')}
     </div>`;
@@ -310,7 +335,15 @@ function renderContact(settings) {
 
   // Bouton flottant
   if (phone) { document.getElementById('help-phone-num').textContent = phone; document.getElementById('help-phone-link').href = `tel:${phone.replace(/\s/g, '')}`; }
-  if (email) { document.getElementById('help-email-addr').textContent = email; document.getElementById('help-email-link').href = `mailto:${email}`; }
+  if (email) {
+    document.getElementById('help-email-addr').textContent = email;
+    document.getElementById('help-email-link').href = `mailto:${email}`;
+    const invoiceLink = document.getElementById('help-invoice-link');
+    const subject = encodeURIComponent('Demande de facture');
+    const body = encodeURIComponent('Bonjour,\n\nJe souhaite recevoir une facture pour mon séjour.\n\nMerci.');
+    invoiceLink.href = `mailto:${email}?subject=${subject}&body=${body}`;
+    invoiceLink.style.display = '';
+  }
 
   c.innerHTML = `
     <div class="contact-grid reveal">
