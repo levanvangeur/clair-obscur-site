@@ -159,13 +159,13 @@ function startHeroSlideshow(images) {
   const slides = images.map((img, i) => {
     const div = document.createElement('div');
     div.className = 'hero-slide' + (i === 0 ? ' active' : '');
-    div.style.backgroundImage = `url(/uploads/${img.filename})`;
+    div.style.backgroundImage = `url(${imgUrl(img.filename)})`;
     hero.insertBefore(div, overlay);
     return div;
   });
 
   // Précharger toutes les images en arrière-plan
-  images.forEach(img => { const i = new Image(); i.src = `/uploads/${img.filename}`; });
+  images.forEach(img => { const i = new Image(); i.src = imgUrl(img.filename); });
 
   if (slides.length < 2) return; // une seule photo → pas besoin du timer
 
@@ -613,7 +613,7 @@ function renderBooking(property, bookings) {
     container.innerHTML = `<div style="text-align:center;padding:3rem;border:1px solid var(--border);color:var(--text-muted);">Lien de réservation à configurer dans le panneau admin.</div>`;
     return;
   }
-  const imgSrc = property.main_image ? `/uploads/${property.main_image}` : null;
+  const imgSrc = property.main_image ? imgUrl(property.main_image) : null;
   const imgHtml = imgSrc
     ? `<img src="${imgSrc}" alt="${esc(property.name)}" loading="lazy">`
     : `<div style="width:100%;height:100%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;"><i data-lucide="home" style="width:48px;height:48px;color:var(--border-light);"></i></div>`;
@@ -965,7 +965,7 @@ async function adminLoadHeroGrid() {
     grid.innerHTML = imgs.length
       ? imgs.map(img => `
           <div style="position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid var(--adm-border);border-radius:3px;">
-            <img src="/uploads/${esc(img.filename)}" style="width:100%;height:100%;object-fit:cover;">
+            <img src="${imgUrl(img.filename)}" style="width:100%;height:100%;object-fit:cover;">
             <button onclick="adminDeleteHeroImage(${img.id})"
               style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,0.75);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
           </div>`).join('')
@@ -1392,7 +1392,7 @@ window.openHotspotModal = async function(imageId, filename, roomName) {
   hmPending = null;
 
   document.getElementById('hm-room-name').textContent = roomName;
-  document.getElementById('hm-photo').src = `/uploads/${filename}`;
+  document.getElementById('hm-photo').src = imgUrl(filename);
   document.getElementById('hotspot-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
 
@@ -1503,6 +1503,11 @@ function iconSvg(name, size = 14) {
   return `<i data-lucide="${map[name]||name||'wrench'}" style="width:${size}px;height:${size}px;display:inline-block;vertical-align:middle;"></i>`;
 }
 
+
+function imgUrl(filename) {
+  if (!filename) return '';
+  return /^https?:\/\//.test(filename) ? filename : '/uploads/' + filename;
+}
 // Échappe HTML (protection XSS)
 function esc(str) {
   if (!str) return '';
