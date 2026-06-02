@@ -551,6 +551,33 @@
   </div>
 </div>
 
+<!-- ══ Modal demande horaire (arrivée anticipée / départ tardif) ══ -->
+<div id="timing-request-modal" style="display:none;position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,0.72);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1.5rem;">
+  <div class="timing-modal-card">
+    <button onclick="closeTimingModal()" class="timing-modal-close" aria-label="Fermer">
+      <i data-lucide="x" style="width:15px;height:15px;"></i>
+    </button>
+    <p class="text-eyebrow" id="timing-modal-eyebrow">Check-in</p>
+    <h3 id="timing-modal-title" class="timing-modal-title">Demander une arrivée anticipée</h3>
+    <p id="timing-modal-desc" class="timing-modal-desc"></p>
+    <div class="timing-field">
+      <label class="timing-label" for="timing-name-input">Votre nom</label>
+      <input id="timing-name-input" type="text" class="timing-select" placeholder="Jean Dupont" autocomplete="name">
+    </div>
+    <div class="timing-field">
+      <label class="timing-label">Heure souhaitée</label>
+      <div class="timing-select-wrap">
+        <select id="timing-hour-select" class="timing-select"></select>
+        <i data-lucide="chevron-down" class="timing-select-icon"></i>
+      </div>
+    </div>
+    <button onclick="sendTimingRequest()" class="btn-primary timing-send-btn">
+      <i data-lucide="send" style="width:14px;height:14px;"></i>
+      Envoyer la demande
+    </button>
+  </div>
+</div>
+
 <!-- ══ Toast container ════════════════════════════════════════ -->
 <div id="toast-container"></div>
 

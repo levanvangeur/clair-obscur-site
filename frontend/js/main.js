@@ -237,21 +237,31 @@ function renderAccordionSection(items, containerId, idOffset, emptyMsg) {
 function renderArrivee(rules) {
   const c = document.getElementById('arrivee-container');
   if (!rules) { c.innerHTML = ''; return; }
-  c.innerHTML = renderCheckinBlock(rules.check_in_time || '15:00', rules.check_in_instructions || '');
+  c.innerHTML = renderCheckinBlock(rules.check_in_time || '15:00', rules.check_in_instructions || '') + `
+    <button class="btn-timing-request reveal" onclick="openTimingModal('arrivee')">
+      <i data-lucide="clock" style="width:13px;height:13px;"></i>
+      Demander une arrivée anticipée
+    </button>`;
+  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
 }
 
 function renderDepart(rules) {
   const c = document.getElementById('depart-container');
   if (!rules) { c.innerHTML = ''; return; }
-  c.innerHTML = renderCheckinBlock(rules.check_out_time || '11:00', rules.check_out_instructions || '');
+  c.innerHTML = renderCheckinBlock(rules.check_out_time || '11:00', rules.check_out_instructions || '') + `
+    <button class="btn-timing-request reveal" onclick="openTimingModal('depart')">
+      <i data-lucide="clock" style="width:13px;height:13px;"></i>
+      Demander un départ tardif
+    </button>`;
+  setTimeout(() => { lucide.createIcons(); setupScrollReveal(); }, 60);
 }
 
 function renderCheckinBlock(time, text) {
   const lines = (text || '').split('\n').map(l => l.trim()).filter(Boolean);
-  const timeHtml = `<div class="checkin-time">${esc(time)}</div>`;
+  const timeHtml = `<div class="checkin-time reveal">${esc(time)}</div>`;
   if (!lines.length) return timeHtml;
-  const stepsHtml = lines.map(line => `
-    <div class="checkin-step">
+  const stepsHtml = lines.map((line, i) => `
+    <div class="checkin-step reveal" style="transition-delay:${(i * 0.12).toFixed(2)}s">
       <span class="checkin-dot"></span>
       <p class="checkin-step-text">${esc(line)}</p>
     </div>`).join('');
@@ -771,6 +781,81 @@ function setupNavScroll() {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 80);
   }, { passive: true });
 }
+
+// ══════════════════════════════════════════════════════════
+// ── DEMANDE HORAIRE (arrivée anticipée / départ tardif) ──
+// ══════════════════════════════════════════════════════════
+let timingModalType = null;
+
+function openTimingModal(type) {
+  timingModalType = type;
+  const rules = propertyData?.rules || {};
+  const isEarly = type === 'arrivee';
+  const normalTime = isEarly ? (rules.check_in_time || '15:00') : (rules.check_out_time || '11:00');
+
+  document.getElementById('timing-modal-eyebrow').textContent = isEarly ? 'Check-in' : 'Check-out';
+  document.getElementById('timing-modal-title').textContent   = isEarly ? 'Arrivée anticipée' : 'Départ tardif';
+  document.getElementById('timing-modal-desc').textContent    = isEarly
+    ? `L'heure d'arrivée standard est ${normalTime}. Choisissez l'heure à laquelle vous souhaitez arriver.`
+    : `L'heure de départ standard est ${normalTime}. Choisissez l'heure à laquelle vous souhaitez partir.`;
+
+  const select = document.getElementById('timing-hour-select');
+  select.innerHTML = '';
+  const [nh, nm] = normalTime.split(':').map(Number);
+  const normalMin = nh * 60 + nm;
+  const start = isEarly ? 7 * 60       : normalMin + 30;
+  const end   = isEarly ? normalMin - 30 : 20 * 60;
+
+  for (let t = start; t <= end; t += 30) {
+    const opt = document.createElement('option');
+    opt.value = opt.textContent = `${String(Math.floor(t/60)).padStart(2,'0')}:${t%60===0?'00':'30'}`;
+    select.appendChild(opt);
+  }
+  if (!select.options.length) {
+    const opt = document.createElement('option'); opt.value = ''; opt.textContent = 'Aucun créneau disponible'; select.appendChild(opt);
+  }
+
+  const modal = document.getElementById('timing-request-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  lucide.createIcons();
+}
+
+function closeTimingModal() {
+  document.getElementById('timing-request-modal').style.display = 'none';
+  document.getElementById('timing-name-input').value = '';
+  document.body.style.overflow = '';
+  timingModalType = null;
+}
+
+function sendTimingRequest() {
+  const time = document.getElementById('timing-hour-select').value;
+  const guestName = document.getElementById('timing-name-input').value.trim();
+  if (!time || !timingModalType) return;
+  const email = propertyData?.settings?.help_email || '';
+  const propName = propertyData?.name || 'l\'appartement';
+  const isEarly = timingModalType === 'arrivee';
+  const subject = encodeURIComponent(isEarly ? `Demande d'arrivée anticipée — ${propName}` : `Demande de départ tardif — ${propName}`);
+  const nameLine = guestName ? `Nom : ${guestName}\n` : '';
+  const body = encodeURIComponent(
+    isEarly
+      ? `Bonjour,\n\n${nameLine}Je souhaite arriver plus tôt que l'heure habituelle.\n\nHeure souhaitée : ${time}\n\nMerci de me confirmer si cela est possible.\n\nCordialement`
+      : `Bonjour,\n\n${nameLine}Je souhaite partir plus tard que l'heure habituelle.\n\nHeure souhaitée : ${time}\n\nMerci de me confirmer si cela est possible.\n\nCordialement`
+  );
+  if (email) {
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  } else {
+    alert('Aucun email de contact configuré. Veuillez contacter l\'hôte directement.');
+  }
+  closeTimingModal();
+}
+
+// Fermer en cliquant sur le fond
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('timing-request-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeTimingModal();
+  });
+});
 
 function setupScrollReveal() {
   const obs = new IntersectionObserver(entries => {
