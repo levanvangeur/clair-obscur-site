@@ -31,6 +31,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderAll(propertyData);
   } catch {
     showLoadError();
+  } finally {
+    const loader = document.getElementById('page-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      loader.style.visibility = 'hidden';
+      setTimeout(() => { loader.style.display = 'none'; }, 500);
+    }
   }
 
   setupNavScroll();
