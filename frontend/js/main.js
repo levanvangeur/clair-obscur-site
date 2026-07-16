@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch {
     showLoadError();
   } finally {
+    loadLivreOr();
     const loader = document.getElementById('page-loader');
     if (loader) {
       loader.style.opacity = '0';
@@ -616,6 +617,106 @@ function initMap() {
   map.fitBounds(allPoints, { padding: [45, 45], maxZoom: 17 });
 }
 
+// ══════════════════════════════════════════════════════════
+// ── LIVRE D'OR (avis voyageurs) ───────────────────────────
+// ══════════════════════════════════════════════════════════
+let allReviews = [];
+
+// Étoiles en lecture seule (moyenne, cartes d'avis, liste admin)
+function starsDisplay(rating, size) {
+  const r = Math.round(rating);
+  let html = `<span class="star-display" style="font-size:${size || '1rem'}">`;
+  for (let i = 1; i <= 5; i++) html += `<span class="${i <= r ? 'star-filled' : 'star-empty'}">★</span>`;
+  html += '</span>';
+  return html;
+}
+
+// Sélecteur d'étoiles cliquable (formulaire d'avis + édition admin)
+function buildStarPicker(containerId, initial) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.dataset.value = initial || 0;
+  el.innerHTML = [1, 2, 3, 4, 5].map(i => `<button type="button" class="star-pick-btn" data-star="${i}">★</button>`).join('');
+  el.querySelectorAll('.star-pick-btn').forEach(btn => {
+    btn.addEventListener('click', () => { el.dataset.value = btn.dataset.star; paintStarPicker(el); });
+    btn.addEventListener('mouseenter', () => paintStarPicker(el, btn.dataset.star));
+    btn.addEventListener('mouseleave', () => paintStarPicker(el));
+  });
+  paintStarPicker(el);
+}
+function paintStarPicker(el, hoverVal) {
+  const val = hoverVal ? Number(hoverVal) : Number(el.dataset.value || 0);
+  el.querySelectorAll('.star-pick-btn').forEach(btn => {
+    btn.classList.toggle('active', Number(btn.dataset.star) <= val);
+  });
+}
+
+async function loadLivreOr() {
+  try {
+    allReviews = await apiFetch(`/api/reviews/${PROPERTY_ID}`, false);
+  } catch {
+    allReviews = [];
+  }
+  renderLivreOrSummary();
+  renderLivreOrComments();
+  setupReviewForm();
+}
+
+function renderLivreOrSummary() {
+  const el = document.getElementById('livre-dor-summary');
+  if (!el) return;
+  if (!allReviews.length) {
+    el.innerHTML = `<p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:2.5rem;">Aucun avis pour le moment — soyez le premier à laisser le vôtre !</p>`;
+    return;
+  }
+  const avg = allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length;
+  el.innerHTML = `
+    <div class="livre-dor-avg reveal">
+      <span class="livre-dor-avg-num">${avg.toFixed(1)}</span>
+      ${starsDisplay(avg, '1.3rem')}
+      <span class="livre-dor-avg-count">${allReviews.length} avis</span>
+    </div>`;
+}
+
+function renderLivreOrComments() {
+  const el = document.getElementById('livre-dor-comments');
+  if (!el) return;
+  const withText = allReviews.filter(r => r.comment && r.comment.trim());
+  const pool = withText.length ? withText : allReviews;
+  const sample = [...pool].sort(() => Math.random() - 0.5).slice(0, 3);
+  el.innerHTML = sample.map(r => `
+    <div class="review-card reveal">
+      ${starsDisplay(r.rating, '0.85rem')}
+      <p class="review-card-text">${r.comment ? esc(r.comment) : '<em>Sans commentaire</em>'}</p>
+      <p class="review-card-author">— ${esc(r.author_name)}</p>
+    </div>`).join('');
+  setTimeout(() => setupScrollReveal(), 60);
+}
+
+function setupReviewForm() {
+  const form = document.getElementById('review-form');
+  if (!form || form.dataset.bound) return;
+  form.dataset.bound = '1';
+  buildStarPicker('review-star-picker');
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const picker = document.getElementById('review-star-picker');
+    const rating = Number(picker.dataset.value || 0);
+    const author_name = document.getElementById('review-name').value.trim();
+    const comment = document.getElementById('review-comment').value.trim();
+    if (!author_name) return toast('Indiquez votre nom, prénom ou pseudo', 'error');
+    if (!rating) return toast('Choisissez une note', 'error');
+    try {
+      await apiFetch(`/api/reviews/${PROPERTY_ID}`, false, 'POST', { author_name, rating, comment });
+      toast('Merci pour votre avis !');
+      form.reset();
+      picker.dataset.value = 0;
+      paintStarPicker(picker);
+      await loadLivreOr();
+    } catch (err) { toast(err.message, 'error'); }
+  });
+}
+
 function renderDecouvrir(rules) {
   const c = document.getElementById('decouvrir-container');
   if (!rules || !rules.places_to_discover) {
@@ -933,9 +1034,12 @@ window.closeHelp = () => { helpOpen = false; document.getElementById('help-modal
 // ── ADMIN : AUTHENTIFICATION ──────────────────────────────
 // ══════════════════════════════════════════════════════════
 window.handleAdminTrigger = function() {
-  // Auth temporairement désactivée — ouvre le drawer directement
-  applyAdminActiveState();
-  openAdminDrawer();
+  if (adminToken) {
+    applyAdminActiveState();
+    openAdminDrawer();
+  } else {
+    document.getElementById('admin-login-modal').style.display = 'flex';
+  }
 };
 
 window.closeAdminLogin = function() {
@@ -1023,6 +1127,7 @@ window.switchDrawerTab = function(tab) {
   const loaders = {
     info: adminLoadInfo, equip: adminLoadEquip,
     rules: adminLoadRules, booking: adminLoadBooking, settings: adminLoadSettings,
+    avis: adminLoadAvis,
   };
   if (loaders[tab]) loaders[tab]();
 };
@@ -1036,6 +1141,7 @@ async function adminLoadDrawerData() {
     populateRoomSelects();
   } catch(err) {
     console.error('Erreur chargement drawer:', err);
+    toast('Connexion au serveur impossible — vérifiez qu\'il est bien démarré', 'error');
   }
 }
 
@@ -1045,7 +1151,7 @@ function populateRoomSelects() {
 
 // ── Info logement ──
 async function adminLoadInfo() {
-  if (!propertyData) return;
+  if (!propertyData) { toast('Données non chargées — réessayez de rouvrir le panneau', 'error'); return; }
   document.getElementById('dp-name').value       = propertyData.name || '';
   document.getElementById('dp-tagline').value    = propertyData.tagline || '';
   document.getElementById('dp-desc').value       = propertyData.description || '';
@@ -1256,7 +1362,7 @@ async function adminLoadRules() {
     document.getElementById('dr-house-rules').value   = r.house_rules || '';
     document.getElementById('dr-parking').value       = r.parking_instructions || '';
     document.getElementById('dr-places').value        = r.places_to_discover || '';
-  } catch {}
+  } catch { toast('Impossible de charger les règles', 'error'); }
 }
 
 window.adminSaveRules = async function() {
@@ -1284,7 +1390,7 @@ async function adminLoadBooking() {
   try {
     const list = await apiFetch(`/api/rules/booking/${PROPERTY_ID}`, false);
     renderAdminBookingList(Array.isArray(list) ? list : []);
-  } catch {}
+  } catch { toast('Impossible de charger les réservations', 'error'); }
 }
 
 function renderAdminBookingList(list) {
@@ -1337,6 +1443,78 @@ window.adminDeleteBooking = async function(id) {
   } catch (err) { toast(err.message, 'error'); }
 };
 
+// ── Livre d'or (avis) ──
+let currentAvisList = [];
+
+window.adminLoadAvis = async function() {
+  const el = document.getElementById('drw-avis-list');
+  try {
+    currentAvisList = await apiFetch(`/api/reviews/${PROPERTY_ID}`, false);
+    document.getElementById('avis-count-badge').textContent = `${currentAvisList.length} avis`;
+    if (!currentAvisList.length) {
+      el.innerHTML = '<p style="font-size:0.78rem;color:var(--adm-text-dim,#55555a);">Aucun avis.</p>';
+      return;
+    }
+    el.innerHTML = currentAvisList.map(r => `
+      <div class="avis-admin-row" data-id="${r.id}">
+        <div class="avis-admin-row-head">
+          ${starsDisplay(r.rating, '0.75rem')}
+          <span class="avis-admin-row-author">${esc(r.author_name)}</span>
+          <span class="avis-admin-row-date">${new Date(r.created_at).toLocaleDateString('fr-FR')}</span>
+        </div>
+        ${r.comment ? `<p class="avis-admin-row-text">${esc(r.comment)}</p>` : ''}
+        <div style="display:flex;gap:0.3rem;margin-top:0.4rem;">
+          <button class="adm-btn adm-btn-xs" onclick="adminEditAvis(${r.id})"><i data-lucide="pencil" style="width:11px;height:11px;"></i> Modifier</button>
+          <button class="adm-btn adm-btn-danger-xs" onclick="adminDeleteAvis(${r.id})"><i data-lucide="trash-2" style="width:11px;height:11px;"></i> Supprimer</button>
+        </div>
+      </div>`).join('');
+    setTimeout(() => lucide.createIcons(), 30);
+  } catch (err) {
+    el.innerHTML = `<p style="color:#e05555;">${err.message}</p>`;
+  }
+};
+
+window.adminEditAvis = function(id) {
+  const found = currentAvisList.find(r => r.id === id);
+  if (!found) return;
+  document.getElementById('ae-id').value = found.id;
+  document.getElementById('ae-name').value = found.author_name;
+  document.getElementById('ae-comment').value = found.comment || '';
+  buildStarPicker('ae-star-picker', found.rating);
+  document.getElementById('avis-edit-block').style.display = 'block';
+  document.getElementById('avis-edit-block').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+};
+window.closeAvisEdit = function() { document.getElementById('avis-edit-block').style.display = 'none'; };
+
+window.adminSaveAvisEdit = async function() {
+  const id = document.getElementById('ae-id').value;
+  const picker = document.getElementById('ae-star-picker');
+  const body = {
+    author_name: document.getElementById('ae-name').value.trim(),
+    rating: Number(picker.dataset.value || 0),
+    comment: document.getElementById('ae-comment').value.trim(),
+  };
+  if (!body.author_name) return toast('Nom requis', 'error');
+  if (!body.rating) return toast('Choisissez une note', 'error');
+  try {
+    await apiFetch(`/api/reviews/${id}`, true, 'PUT', body);
+    toast('Avis mis à jour');
+    closeAvisEdit();
+    await adminLoadAvis();
+    await loadLivreOr();
+  } catch (err) { toast(err.message, 'error'); }
+};
+
+window.adminDeleteAvis = async function(id) {
+  if (!confirm('Supprimer cet avis ?')) return;
+  try {
+    await apiFetch(`/api/reviews/${id}`, true, 'DELETE');
+    toast('Avis supprimé');
+    await adminLoadAvis();
+    await loadLivreOr();
+  } catch (err) { toast(err.message, 'error'); }
+};
+
 // ── Paramètres ──
 async function adminLoadSettings() {
   try {
@@ -1344,7 +1522,7 @@ async function adminLoadSettings() {
     document.getElementById('ds-sitename').value = s.site_name || '';
     document.getElementById('ds-phone').value    = s.help_phone || '';
     document.getElementById('ds-email').value    = s.help_email || '';
-  } catch {}
+  } catch { toast('Impossible de charger les paramètres', 'error'); }
 }
 
 window.adminSaveSettings = async function(e) {

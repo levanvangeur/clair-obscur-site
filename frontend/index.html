@@ -22,7 +22,11 @@
 <nav id="navbar">
   <a href="#hero" class="nav-logo" id="nav-logo">Clair-Obscur</a>
   <div style="display:flex;align-items:center;gap:0.75rem;">
-    <a href="https://reservation.logementsparay.fr" target="_blank" class="btn-primary nav-book-btn" id="hero-cta">
+    <a href="#livre-dor" class="btn-outline nav-book-btn" id="nav-livre-dor-btn">
+      <i data-lucide="book-open" style="width:14px;height:14px;"></i>
+      Livre d'or
+    </a>
+    <a href="https://reservation.logementsparay.fr/reservation/appartement-le-prestige" target="_blank" class="btn-primary nav-book-btn" id="hero-cta">
       <i data-lucide="calendar-check" style="width:14px;height:14px;"></i>
       Réserver votre prochain séjour
     </a>
@@ -177,6 +181,43 @@
   </div>
 </section>
 
+<!-- ══ LIVRE D'OR ═════════════════════════════════════════════ -->
+<section id="livre-dor" style="background:var(--surface);border-top:1px solid var(--border);">
+  <div class="section">
+    <div class="section-header reveal">
+      <p class="text-eyebrow">Vos retours</p>
+      <span class="divider-line"></span>
+      <h2 class="text-section-title">Livre d'or</h2>
+    </div>
+
+    <div id="livre-dor-summary"></div>
+
+    <div id="livre-dor-comments" class="livre-dor-grid"></div>
+
+    <div class="livre-dor-form-wrap reveal">
+      <p class="adm-section-title" style="color:var(--text);">Laisser un avis</p>
+      <form id="review-form">
+        <div class="timing-field">
+          <label class="timing-label" for="review-name">Nom, prénom ou pseudo</label>
+          <input id="review-name" type="text" class="timing-select" placeholder="Julie D." maxlength="80" required>
+        </div>
+        <div class="timing-field">
+          <label class="timing-label">Votre note</label>
+          <div id="review-star-picker" class="star-picker" data-value="0"></div>
+        </div>
+        <div class="timing-field">
+          <label class="timing-label" for="review-comment">Votre commentaire (facultatif)</label>
+          <textarea id="review-comment" class="timing-select" rows="3" maxlength="1000" placeholder="Un mot sur votre séjour…" style="resize:vertical;"></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;justify-content:center;">
+          <i data-lucide="send" style="width:14px;height:14px;"></i>
+          Envoyer mon avis
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
 <!-- ══ FOOTER ═════════════════════════════════════════════════ -->
 <footer>
   <p id="footer-name" style="font-family:var(--font-display);font-size:1.1rem;font-weight:300;color:var(--text-muted);">Clair-Obscur</p>
@@ -280,6 +321,7 @@
     <button class="drw-tab"        data-tab="equip"    onclick="switchDrawerTab('equip')">Équipements</button>
     <button class="drw-tab"        data-tab="rules"    onclick="switchDrawerTab('rules')">Contenu</button>
     <button class="drw-tab"        data-tab="booking"  onclick="switchDrawerTab('booking')">Réservation</button>
+    <button class="drw-tab"        data-tab="avis"     onclick="switchDrawerTab('avis')">Livre d'or</button>
     <button class="drw-tab"        data-tab="settings" onclick="switchDrawerTab('settings')">Paramètres</button>
   </div>
 
@@ -481,6 +523,32 @@
           <i data-lucide="plus" style="width:13px;height:13px;"></i> Ajouter
         </button>
       </form>
+    </div>
+
+    <!-- ── Livre d'or ── -->
+    <div class="drw-panel" id="drw-avis">
+
+      <!-- Formulaire d'édition (caché par défaut) -->
+      <div id="avis-edit-block" style="display:none;background:var(--adm-surface-2);padding:1rem;margin-bottom:1.25rem;border:1px solid var(--adm-border);">
+        <p class="adm-label" style="margin-bottom:0.75rem;">Modifier l'avis</p>
+        <input type="hidden" id="ae-id">
+        <div class="adm-form-group"><label class="adm-label">Nom / pseudo</label><input type="text" class="adm-input" id="ae-name"></div>
+        <div class="adm-form-group">
+          <label class="adm-label">Note</label>
+          <div id="ae-star-picker" class="star-picker" data-value="0"></div>
+        </div>
+        <div class="adm-form-group"><label class="adm-label">Commentaire</label><textarea class="adm-input" id="ae-comment" rows="3"></textarea></div>
+        <div style="display:flex;gap:0.5rem;">
+          <button class="adm-btn adm-btn-gold adm-btn-sm" onclick="adminSaveAvisEdit()"><i data-lucide="save" style="width:12px;height:12px;"></i> Enregistrer</button>
+          <button class="adm-btn adm-btn-ghost adm-btn-sm" onclick="closeAvisEdit()">Annuler</button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+        <p class="adm-section-title" style="margin:0;">Tous les avis</p>
+        <span id="avis-count-badge" style="font-size:0.7rem;color:var(--adm-text-muted);">—</span>
+      </div>
+      <div id="drw-avis-list"></div>
     </div>
 
     <!-- ── Paramètres ── -->

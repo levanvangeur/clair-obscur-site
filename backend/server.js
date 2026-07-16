@@ -23,6 +23,7 @@ app.use('/api/rules',         require('./routes/rules'));
 app.use('/api/hotspots',      require('./routes/hotspots'));
 app.use('/api/faq',           require('./routes/faq'));
 app.use('/api/checkin-items', require('./routes/checkin-items'));
+app.use('/api/reviews',       require('./routes/reviews'));
 
 // Fallback SPA (dev local)
 app.get('/admin*', (req, res) => res.sendFile(path.join(__dirname, '../frontend/admin/index.html')));

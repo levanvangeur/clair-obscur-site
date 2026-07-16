@@ -186,6 +186,16 @@ async function initDatabase() {
       order_index  INTEGER DEFAULT 0,
       FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS reviews (
+      id           INTEGER PRIMARY KEY AUTOINCREMENT,
+      property_id  INTEGER NOT NULL,
+      author_name  TEXT NOT NULL,
+      rating       INTEGER NOT NULL,
+      comment      TEXT,
+      created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (property_id) REFERENCES properties(id) ON DELETE CASCADE
+    );
   `);
 
   await seedIfEmpty();
