@@ -2,6 +2,13 @@ const jwt = require('jsonwebtoken');
 const SECRET = process.env.JWT_SECRET || 'dev_secret_change_me';
 
 function authenticateAdmin(req, res, next) {
+  // En local (node backend/server.js), aucun mot de passe n'est nécessaire —
+  // voir le flag posé dans server.js. Toujours exigé une fois en ligne.
+  if (process.env.LOCAL_ADMIN_BYPASS === 'true') {
+    req.user = { id: 0, username: 'local' };
+    return next();
+  }
+
   const header = req.headers['authorization'] || '';
   const token = header.startsWith('Bearer ') ? header.slice(7) : null;
   if (!token) return res.status(401).json({ error: 'Token manquant' });

@@ -37,6 +37,11 @@ app.use((err, req, res, _next) => {
 
 // Dev local uniquement
 if (require.main === module) {
+  // Personne d'autre que vous n'a accès à votre machine : le mot de passe
+  // admin ne sert à rien ici. Il reste exigé une fois le site déployé sur
+  // Netlify (cette branche ne s'exécute jamais dans la fonction serverless).
+  process.env.LOCAL_ADMIN_BYPASS = 'true';
+
   const PORT = process.env.PORT || 3000;
   initDatabase().then(() => {
     app.listen(PORT, () => console.log(`\n🏠 http://localhost:${PORT}\n`));

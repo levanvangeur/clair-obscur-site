@@ -1034,7 +1034,10 @@ window.closeHelp = () => { helpOpen = false; document.getElementById('help-modal
 // ── ADMIN : AUTHENTIFICATION ──────────────────────────────
 // ══════════════════════════════════════════════════════════
 window.handleAdminTrigger = function() {
-  if (adminToken) {
+  // En local, pas de mot de passe : le serveur (server.js) accepte toutes
+  // les requêtes admin sans jeton — voir LOCAL_ADMIN_BYPASS.
+  const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
+  if (isLocal || adminToken) {
     applyAdminActiveState();
     openAdminDrawer();
   } else {
