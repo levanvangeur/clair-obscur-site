@@ -79,12 +79,10 @@
     <header class="hero" id="bienvenue">
       <div class="hero-content reveal">
         ${m.logo ? `<img class="logo" src="${esc(m.logo)}" alt="${esc(m.apartmentName)}" />` : ''}
-        <div class="cov-kicker">Livret d'accueil</div>
+        ${m.city ? `<div class="cov-kicker" data-notranslate>${esc(m.city)}</div>` : ''}
         <h1 data-notranslate>${esc(m.apartmentName || '')}</h1>
-        ${m.city ? `<div class="cov-sub" data-notranslate>${esc(m.city)}</div>` : ''}
-        ${m.region ? `<div class="cov-region">${esc(m.region)}</div>` : ''}
         <div class="hero-rule"></div>
-        ${m.motto ? `<div class="cov-tag">« ${esc(m.motto)} »</div>` : ''}
+        ${m.tagline ? `<p class="cov-sub-tag">${esc(m.tagline)}</p>` : (m.motto ? `<p class="cov-sub-tag">« ${esc(m.motto)} »</p>` : '')}
         ${m.bookingUrl ? `<div class="hero-cta-wrap"><a href="${esc(m.bookingUrl)}" class="hero-cta" target="_blank" rel="noopener">Réservez votre prochain séjour</a></div>` : ''}
       </div>
       <a href="#pratique" class="scroll-cue" aria-label="Défiler">⌄</a>
