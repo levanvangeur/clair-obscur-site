@@ -83,35 +83,51 @@
     try { localStorage.setItem(CACHE_KEY + lang, JSON.stringify(map)); } catch (e) {}
   }
 
-  // Traduit un lot de textes via l'endpoint public Google gtx (repli MyMemory).
+  // Traduit un LOT de textes en une seule requête (Google gtx).
+  // Les chaînes sont jointes par des retours à la ligne ; l'endpoint les
+  // renvoie alignées. On vérifie le compte : en cas de désalignement, on
+  // renvoie null pour déclencher un repli chaîne par chaîne.
+  async function gtxBatch(texts, lang, tries) {
+    const safe = texts.map((t) => t.replace(/\s*\n\s*/g, ' '));
+    const joined = safe.join('\n');
+    const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl='
+      + lang + '&dt=t&q=' + encodeURIComponent(joined);
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error('http ' + r.status);
+      const j = await r.json();
+      if (!Array.isArray(j) || !Array.isArray(j[0])) return null;
+      const full = j[0].map((s) => (s && s[0]) ? s[0] : '').join('');
+      const parts = full.split('\n');
+      if (parts.length !== texts.length) return null; // désalignement
+      return parts.map((p) => p.trim());
+    } catch (e) {
+      if ((tries || 0) < 1) { await new Promise((r) => setTimeout(r, 350)); return gtxBatch(texts, lang, (tries || 0) + 1); }
+      return null;
+    }
+  }
+
+  // Repli : une chaîne (gtx puis MyMemory).
   async function translateOne(text, lang) {
-    // 1) Google gtx (rapide, gère les longues phrases)
     try {
       const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=fr&tl='
         + lang + '&dt=t&q=' + encodeURIComponent(text);
       const r = await fetch(url);
       if (r.ok) {
         const j = await r.json();
-        if (Array.isArray(j) && Array.isArray(j[0])) {
-          return j[0].map((seg) => (seg && seg[0]) ? seg[0] : '').join('');
-        }
+        if (Array.isArray(j) && Array.isArray(j[0])) return j[0].map((seg) => (seg && seg[0]) ? seg[0] : '').join('');
       }
     } catch (e) {}
-    // 2) MyMemory (repli)
     try {
       const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=fr|' + lang;
       const r = await fetch(url);
-      if (r.ok) {
-        const j = await r.json();
-        if (j && j.responseData && j.responseData.translatedText) return j.responseData.translatedText;
-      }
+      if (r.ok) { const j = await r.json(); if (j && j.responseData && j.responseData.translatedText) return j.responseData.translatedText; }
     } catch (e) {}
     return null;
   }
 
   async function translateTo(lang) {
     const cache = loadCache(lang);
-    // textes uniques à traduire (non déjà en cache)
     const uniq = [];
     const seen = new Set();
     originals.forEach((o) => {
@@ -121,21 +137,32 @@
 
     if (uniq.length === 0) { applyMap(lang, cache); hideToast(); return true; }
 
-    toast('Traduction en cours…', 0);
-    let done = 0, failed = 0;
-    const CONC = 6;
-    let idx = 0;
+    // Découpe en lots (≤ 40 chaînes ou ≤ 3000 caractères encodés par requête)
+    const batches = []; let cur = []; let curLen = 0;
+    for (const t of uniq) {
+      const l = t.length + 1;
+      if (cur.length && (cur.length >= 40 || curLen + l > 3000)) { batches.push(cur); cur = []; curLen = 0; }
+      cur.push(t); curLen += l;
+    }
+    if (cur.length) batches.push(cur);
+
+    toast('Traduction…', 0);
+    let failed = 0, doneB = 0;
+    const CONC = 4; let bi = 0;
     async function worker() {
-      while (idx < uniq.length) {
-        const my = idx++;
-        const text = uniq[my];
-        const tr = await translateOne(text, lang);
-        if (tr != null) { cache[text] = tr; } else { failed++; }
-        done++;
-        if (done % 5 === 0) toast('Traduction en cours… ' + Math.round((done / uniq.length) * 100) + '%', 0);
+      while (bi < batches.length) {
+        const batch = batches[bi++];
+        let res = await gtxBatch(batch, lang);
+        if (!res) { // repli chaîne par chaîne (alignement garanti)
+          res = [];
+          for (const t of batch) res.push(await translateOne(t, lang));
+        }
+        batch.forEach((t, i) => { if (res[i] != null && res[i] !== '') cache[t] = res[i]; else failed++; });
+        doneB++;
+        if (batches.length > 1) toast('Traduction… ' + Math.round((doneB / batches.length) * 100) + '%', 0);
       }
     }
-    await Promise.all(Array.from({ length: Math.min(CONC, uniq.length) }, worker));
+    await Promise.all(Array.from({ length: Math.min(CONC, batches.length) }, worker));
     saveCache(lang, cache);
 
     if (failed > uniq.length * 0.5) {
@@ -145,7 +172,7 @@
       return false;
     }
     applyMap(lang, cache);
-    toast(failed ? 'Traduit (certains passages en français).' : 'Traduit ✓', 2200);
+    toast(failed ? 'Traduit ✓' : 'Traduit ✓', 1600);
     return true;
   }
 

@@ -109,9 +109,8 @@
       <div class="grid cols-2">
         <div class="callout reveal">
           <div class="co-label">Connexion Wi-Fi</div>
-          <div class="co-row"><div><div class="co-label">Réseau</div><div class="co-big">${esc(wifi.network || '—')}</div></div>
-            <button class="copy-btn" data-copy="${esc(wifi.network || '')}" data-notranslate>Copier</button></div>
-          <div class="co-row"><div><div class="co-label">Mot de passe</div><div class="co-big">${esc(wifi.password || '—')}</div></div>
+          <div class="co-row"><div><div class="co-label">Réseau</div><div class="co-big" data-notranslate>${esc(wifi.network || '—')}</div></div></div>
+          <div class="co-row"><div><div class="co-label">Mot de passe</div><div class="co-big" data-notranslate>${esc(wifi.password || '—')}</div></div>
             <button class="copy-btn" data-copy="${esc(wifi.password || '')}" data-notranslate>Copier</button></div>
         </div>
         <div class="card info-card reveal">
