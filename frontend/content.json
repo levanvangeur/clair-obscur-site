@@ -6,7 +6,9 @@
     "region": "Bourgogne du Sud · Saône-et-Loire",
     "motto": "Votre séjour, notre priorité",
     "logo": "images/logo.png",
-    "bookingUrl": "https://reservation.logementsparay.fr"
+    "bookingUrl": "https://reservation.logementsparay.fr",
+    "reviewUrlBooking": "https://www.booking.com/hotel/fr/le-clair-obscur-paray-le-monial.fr.html",
+    "reviewUrlAirbnb": "https://www.airbnb.fr/rooms/1606629925500438808"
   },
   "welcome": {
     "title": "Bienvenue",
@@ -718,25 +720,25 @@
     ]
   },
   "goodbye": {
-    "title": "Merci de votre visite",
-    "text": "Nous espérons que vous avez passé un séjour à la hauteur de vos attentes. Votre avis nous est précieux : n'hésitez pas à partager votre expérience. Excellent voyage, et revenez quand vous voulez !"
+    "title": "Votre avis nous est précieux.",
+    "text": "Nous espérons que vous avez passé un séjour à la hauteur de vos attentes. Excellent voyage, et revenez quand vous voulez !"
   },
   "sectionOrder": [
     "welcome",
     "practical",
     "rules",
     "departure",
+    "goodbye",
     "comfort",
-    "gallery",
+    "eat",
     "discover",
     "stroll",
-    "eat",
     "drinks",
     "services",
     "shops",
     "escapes",
     "digoinCharolles",
-    "numbers",
-    "goodbye"
+    "gallery",
+    "numbers"
   ]
 }
