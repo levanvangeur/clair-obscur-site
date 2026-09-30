@@ -30,7 +30,7 @@
     },
     "address": {
       "full": "14 rue Denis Papin, 71600 Paray-le-Monial",
-      "floor": "",
+      "floor": "1er étage",
       "buildingCode": "",
       "parking": "Stationnement devant le bâtiment, entre le portail noir et la porte de garage blanche. Parking gratuit également au pied de la résidence. Pour les vélos, nous vous fournissons le code du garage afin de les stocker à l'abri durant votre séjour."
     },
@@ -43,14 +43,14 @@
     }
   },
   "comfort": {
-    "intro": "Tout a été prévu pour votre confort. Voici quelques repères pour profiter pleinement du logement.",
+    "intro": "Tout a été prévu pour votre confort. Voici quelques repères pour profiter pleinement du logement.\nLinge de maison disponible sur votre lit, une serviette de bain et une capsule de café par personne (N'hésitez pas à demander du linge supplémentaire si besoin).",
     "sections": [
       {
         "title": "Cuisine & électroménager",
         "items": [
           "Réfrigérateur / congélateur, plaques à induction et hotte à disposition.",
           "Four / micro-ondes : notice à côté de l'appareil.",
-          "Lave-vaisselle : pastilles fournies sous l'évier.",
+          "Lave-vaisselle : pastilles fournies.",
           "Cafetière Tassimo, bouilloire, grille-pain, ustensiles et vaisselle dans les placards."
         ]
       },
@@ -67,7 +67,7 @@
       {
         "title": "Multimédia",
         "items": [
-          "Télévision HD : allumez avec la télécommande principale.",
+          "Télévision HD : allumez avec la télécommande principale et regardez les chaînes avec la télécommande free.",
           "Wi-Fi fibre optique haut débit dans tout le logement (codes ci-dessus)."
         ]
       },
@@ -119,7 +119,7 @@
           "Chauffage"
         ],
         "images": [
-          "images/rooms/salon/ChatGPTImage24aot202619_31_59-1788451401860.png"
+          "images/rooms/salon/ChatGPTImage24aot202619_31_59-1790791191660.png"
         ]
       },
       {
