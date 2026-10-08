@@ -725,6 +725,7 @@
   },
   "sectionOrder": [
     "welcome",
+    "earlyLate",
     "practical",
     "rules",
     "departure",
@@ -740,5 +741,14 @@
     "digoinCharolles",
     "gallery",
     "numbers"
-  ]
+  ],
+  "earlyLate": {
+    "enabled": true,
+    "standardCheckIn": 16,
+    "standardCheckOut": 11,
+    "earliestArrival": 12,
+    "latestDeparture": 15,
+    "pricePerHour": 5,
+    "notifyEmail": "bpf.immo71@gmail.com"
+  }
 }
